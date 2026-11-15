@@ -5,273 +5,276 @@
 <meta name="theme-color" content="#030912">
 <title>RAM 1500</title>
 <style>
-/* Bluetooth dashboard. Talks to the board's control service over the phone's existing walk-up link
-   (Chrome Web Bluetooth), so the phone keeps mobile internet. Public page: no plate, no photos, no secrets.
-   Only the paired phone can use it: the board's control service needs the bonded, encrypted link. */
-:root{--bg:#030912;--p:#081726;--ln:#1d4468;--cy:#4fd0ff;--bl:#2f8cff;--dim:#8fb4d1;--tx:#e8f7ff;--am:#ffb840;--ok:#3ee8a4;--bad:#ff6b6b;
---m:"Roboto Mono","Cascadia Mono",Consolas,monospace;--s:Roboto,"Segoe UI",system-ui,sans-serif;--g:linear-gradient(var(--cy),var(--cy));color-scheme:dark}
+/* Bluetooth edition of the truck dashboard (same design as the board's page.html). Hosted on GitHub Pages; Chrome
+   Web Bluetooth attaches to the phone's existing walk-up link, so the phone keeps mobile internet. Public page:
+   no plate text and no secrets; only the paired phone can use the board's control service (bonded, encrypted link).
+   Military HUD in the truck's blue.
+   Shape language: every panel and button is cut top-left and bottom-right (.k draws the 1px edge with two layers). */
+:root{--bg:#030912;--p:#081726;--ln:#1d4468;--cy:#4fd0ff;--bl:#2f8cff;--dim:#8fb4d1;--tx:#e8f7ff;--am:#ffb840;--rd:#ff6464;--ok:#3ee8a4;
+--m:"Roboto Mono","Cascadia Mono",Consolas,monospace;--s:Roboto,"Segoe UI",system-ui,sans-serif;--g:linear-gradient(var(--cy),var(--cy))}
 *{box-sizing:border-box}
-html,body{background:var(--bg)}
-body{margin:0;color:var(--tx);font-family:var(--s);-webkit-tap-highlight-color:transparent;
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--s);-webkit-tap-highlight-color:transparent;
 background-image:radial-gradient(90% 420px at 50% 0,rgba(47,140,255,.2),transparent),linear-gradient(rgba(79,208,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(79,208,255,.04) 1px,transparent 1px);background-size:auto,24px 24px,24px 24px;background-repeat:no-repeat,repeat,repeat}
-.wrap{max-width:500px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));display:grid;gap:9px}
+/* One screen, no scroll: the page fills the window height and the button rows soak up whatever is spare. */
+.wrap{max-width:500px;margin:0 auto;padding:10px max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));display:grid;gap:8px;grid-template:auto auto auto 1fr/minmax(0,1fr);min-height:min(100vh,780px);min-height:min(100dvh,780px)}
 .lbl{font:500 11px var(--m);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
-.k,.pill,.tile,.b{--c:12px;--b:var(--ln);--f:var(--p);position:relative;isolation:isolate;background:var(--b);
+.on{color:var(--am)}
+.k,button,.pill,.tile{--c:14px;--b:var(--ln);--f:var(--p);position:relative;isolation:isolate;background:var(--b);
 clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
-.k:before,.pill:before,.tile:before,.b:before{content:"";position:absolute;inset:1px;z-index:-1;background:var(--f);clip-path:inherit}
-.k{--f:linear-gradient(180deg,#0b2038,#06111d);padding:9px 12px}
+.k:before,button:before,.pill:before,.tile:before{content:"";position:absolute;inset:1px;z-index:-1;background:var(--f);clip-path:inherit}
+.k{--c:12px;--f:linear-gradient(180deg,#0b2038,#06111d);padding:8px 12px}
 .k:after{content:"";position:absolute;inset:4px;pointer-events:none;background:var(--g) 100% 0/10px 2px,var(--g) 100% 0/2px 10px,var(--g) 0 100%/10px 2px,var(--g) 0 100%/2px 10px;background-repeat:no-repeat}
-header{display:flex;align-items:center;gap:10px;padding-bottom:9px;border-bottom:1px solid var(--ln)}
-h1{margin:0 0 4px;font-size:22px;line-height:1;letter-spacing:.2em;font-weight:700}
-.pill{--c:7px;--b:var(--dim);margin-left:auto;font:700 11px var(--m);letter-spacing:.12em;padding:8px 11px;color:var(--dim);white-space:nowrap;border:0}
+header{display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:1px solid var(--ln)}
+.logo{height:40px;width:auto;flex:none;filter:drop-shadow(0 0 5px rgba(79,208,255,.45))}
+h1{margin:0 0 3px;font-size:20px;line-height:1;letter-spacing:.2em;font-weight:700}
+.pill{--c:7px;--b:var(--dim);margin-left:auto;font:700 11px var(--m);letter-spacing:.12em;padding:8px 11px;color:var(--dim);white-space:nowrap}
 .pill:after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-left:8px}
-.pill.on{--b:var(--ok);--f:#062a22;color:var(--ok)}
-.pill.wait{--b:var(--am);--f:#2a1d06;color:var(--am)}
-.pill.off{--b:var(--bad);--f:#2a0b0b;color:var(--bad)}
-.mid{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
-.radar{display:block;width:84px;height:84px}
+.pill.on{--b:var(--ok);--f:#062a22;color:var(--ok)}.pill.on:after{box-shadow:0 0 8px var(--ok)}
+.pill.err{--b:var(--rd);color:var(--rd)}
+.top{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,9fr);gap:8px}
+.veh{display:grid;gap:2px;text-align:center}
+.holo{position:relative;overflow:hidden}
+.holo img{position:relative;display:block;height:108px;max-width:100%;object-fit:contain;margin:0 auto;filter:drop-shadow(0 0 5px rgba(79,208,255,.5));animation:flick 6s infinite}
+.holo svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--cy)}
+.scanl{position:absolute;left:0;right:0;height:16%;top:-20%;background:linear-gradient(180deg,transparent,rgba(79,208,255,.16),transparent);animation:scanv 3.6s linear infinite}
+@keyframes scanv{to{top:110%}}
+@keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.7}98%{opacity:1}99%{opacity:.8}}
+@keyframes sw{to{transform:rotate(360deg)}}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{--c:8px;display:grid;gap:1px;padding:6px 10px;min-width:0}
+.tile b{font:700 14px var(--m);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:3px;background:var(--ln)}.bar i{display:block;height:100%;width:0;background:var(--cy);transition:width .6s}
+.mid{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.radar{display:block;width:100px;height:100px}
 .radar circle{fill:none;stroke:rgba(79,208,255,.4)}
 .sweep{transform-origin:75px 75px;animation:sw 4s linear infinite}
-@keyframes sw{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.sweep{animation:none}}
-.dbm{font:700 26px/1.1 var(--m);white-space:nowrap;text-shadow:0 0 10px rgba(79,208,255,.6)}
-.bar{height:3px;background:var(--ln);margin:6px 0}.bar i{display:block;height:100%;width:0;background:var(--cy);transition:width .4s}
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tile{--c:8px;display:grid;gap:2px;padding:7px 10px;min-width:0}
-.tile b{font:700 15px var(--m);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.am{color:var(--am)}
-.sec{display:flex;align-items:center;gap:10px}.sec:after{content:"";flex:1;height:1px;background:var(--ln)}
-.b{--b:var(--bl);--f:linear-gradient(180deg,#113457,#0a1f36);display:grid;place-content:center;text-align:center;border:0;width:100%;
-font:700 20px var(--m);letter-spacing:.2em;text-indent:.2em;color:var(--tx);min-height:58px;cursor:pointer}
-.b:active{filter:brightness(1.5)}
-.b:disabled{filter:grayscale(.8) brightness(.6);cursor:default}
-.b small{display:block;font-weight:500;font-size:10px;letter-spacing:.08em;text-indent:0;color:var(--dim);margin-top:4px}
-.big{--c:16px;--b:var(--cy);--f:linear-gradient(180deg,#1b639a,#0d3157);font-size:30px;letter-spacing:.26em;text-indent:.26em;min-height:76px;text-shadow:0 0 12px rgba(79,208,255,.7)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.px{display:grid;gap:4px;min-width:0}.px .lbl{letter-spacing:.1em;white-space:nowrap}
+#dbm{font:700 23px/1.1 var(--m);white-space:nowrap;text-shadow:0 0 10px rgba(79,208,255,.6)}
+#zone{color:var(--tx)}
+.key:before{content:"";display:inline-block;width:14px;border-top:2px dashed var(--ok);vertical-align:middle;margin-right:6px}
+.sec{display:flex;align-items:center;gap:10px;min-height:16px}
+.sec:after{content:"";flex:1;height:1px;background:var(--ln);order:1}
+#msg{order:2;font:700 12px var(--m);letter-spacing:.08em;color:var(--cy)}
+.ctl{display:grid;gap:8px;grid-template:auto minmax(84px,1.5fr) minmax(68px,1.1fr) auto minmax(60px,.9fr) auto/minmax(0,1fr)}
+button{--b:var(--bl);--f:linear-gradient(180deg,#113457,#0a1f36);font:700 21px var(--m);letter-spacing:.2em;text-indent:.2em;color:var(--tx);border:0;margin:0;
+padding:4px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .08s,filter .15s}
+button:active{transform:scale(.97);filter:brightness(1.4)}
+button small{display:block;font-weight:500;font-size:11px;letter-spacing:.1em;text-indent:.1em;color:var(--dim);margin-top:6px}
+.big{--c:18px;--b:var(--cy);--f:linear-gradient(180deg,#1b639a,#0d3157);font-size:32px;letter-spacing:.26em;text-indent:.26em;text-shadow:0 0 12px rgba(79,208,255,.7)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .start{--b:var(--am)}.start small{color:var(--am)}
-.start.armed{--f:linear-gradient(180deg,#8a5a0a,#3d2706);color:#fff;text-shadow:0 0 10px rgba(255,184,64,.8)}
-.row3 .b{--c:9px;--b:var(--ln);--f:var(--p);font-size:15px;min-height:52px}
-.row3 .sel{--b:var(--am);--f:linear-gradient(180deg,#6b4508,#33210a);color:var(--am);text-shadow:0 0 10px rgba(255,184,64,.7)}.row3 .sel small{color:var(--tx)}
-ol{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:4px;font:12px/1.35 var(--m);color:var(--dim)}
-ol li{display:grid;grid-template-columns:62px 1fr;gap:8px}ol li span:last-child{color:var(--tx)}
-.msg{font:13px/1.45 var(--s);color:var(--dim)}.msg b{color:var(--tx)}
-.foot{text-align:center}
-#setup{display:none}
-#toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#0d3157;border:1px solid var(--cy);color:var(--tx);font:600 14px var(--s);padding:10px 16px;border-radius:6px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw}
-#toast.show{opacity:1}#toast.bad{border-color:var(--bad);background:#2a0b0b}
+.start.arm{--f:var(--am);color:#1c1200;text-shadow:none}.start.arm small{color:inherit;font-weight:700}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.modes button{--c:10px;--b:var(--ln);--f:var(--p);font-size:16px}
+.modes small{font-size:10px;letter-spacing:.04em;text-indent:0}
+.modes .sel{--b:var(--am);--f:linear-gradient(180deg,#6b4508,#33210a);color:var(--am);text-shadow:0 0 10px rgba(255,184,64,.7)}.sel:before{box-shadow:inset 0 0 14px rgba(255,184,64,.45)}.sel small{color:var(--tx);text-shadow:none}
+/* Event log: one line (the newest); tap it to open the full history. */
+.log{--c:8px;display:flex;gap:10px;align-items:baseline;padding:8px 12px}.log:after{display:none}
+#log{flex:1;min-width:0;margin:0;font:12px/18px var(--m);color:var(--dim);white-space:pre;height:18px;overflow:hidden}
+.log.open #log{white-space:pre-wrap;height:auto;max-height:40vh;overflow:auto}
+.setup{position:fixed;z-index:5;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:96px;max-width:476px;margin:0 auto;display:grid;gap:8px;padding:14px;box-shadow:0 0 0 100vmax rgba(3,9,18,.7)}.setup[hidden]{display:none}.setup p{margin:0;font:13px/1.45 var(--s);color:var(--dim)}.setup p b{color:var(--tx)}
+.setup button{min-height:56px;font-size:17px}
+button:disabled{filter:grayscale(.7) brightness(.6);cursor:default}
+.pill.wait{--b:var(--am);--f:#2a1d06;color:var(--am)}
+@media (max-height:640px){.veh{display:none}.top{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.scanl,.sweep,.holo img{animation:none}button{transition:none}}
 </style></head><body><div class="wrap">
+
 <header>
+<img id="logo" class="logo" alt="Ram" src="logo.webp">
 <div><h1>RAM 1500</h1><div class="lbl">Warlock // 5.7L 4x4</div></div>
-<button class="pill" id="pill" type="button">STARTING</button>
+<div id="link" class="pill">NO LINK</div>
 </header>
 
-<section class="k" id="setup">
-<div class="lbl">Set up once</div>
-<p class="msg" id="setupMsg">Chrome needs your permission to talk to the board.</p>
-<button class="b" id="setupBtn" type="button">CONNECT TO BOARD</button>
+<section class="k setup" id="setup" hidden>
+<span class="lbl">Set up once</span>
+<p id="setupMsg">Chrome needs permission to talk to the board.</p>
+<button id="setupBtn" type="button">CONNECT TO BOARD</button>
 </section>
 
-<section class="k mid">
-<svg class="radar" viewBox="0 0 150 150" aria-label="Phone distance">
-<circle cx="75" cy="75" r="70"/><circle cx="75" cy="75" r="52"/><circle cx="75" cy="75" r="35" style="stroke:#3ee8a4;stroke-dasharray:4 4"/><circle cx="75" cy="75" r="17"/>
-<path d="M75 3V147M3 75H147" stroke="rgba(79,208,255,.25)"/>
-<path class="sweep" d="M75 75L75 5A70 70 0 0 1 135 40Z" fill="rgba(79,208,255,.16)"/>
-<rect x="69" y="64" width="12" height="22" rx="2" fill="none" stroke="#4fd0ff"/>
-<circle id="blip" cx="75" cy="75" r="5" fill="#3ee8a4" style="display:none"/>
+<section class="top">
+<div class="k veh">
+<div class="holo">
+<svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle cx="100" cy="55" r="51" opacity=".35"/><circle cx="100" cy="55" r="43" stroke-dasharray="2 6" opacity=".6"/><path d="M30 55H50M150 55H170M100 1V9M100 101V109" opacity=".7"/></svg>
+<img id="car" alt="Ram 1500 hologram" src="ram.webp"><i class="scanl"></i></div>
+<span class="lbl">Warlock</span>
+</div>
+<div class="k mid">
+<svg class="radar" viewBox="0 0 150 150" aria-label="Phone distance radar">
+<circle cx="75" cy="75" r="72" stroke-width="4" stroke-dasharray="1 11.57"/><circle cx="75" cy="75" r="68"/><circle cx="75" cy="75" r="51"/><circle cx="75" cy="75" r="34" style="stroke:#3ee8a4;stroke-dasharray:4 4;stroke-width:2"/><circle cx="75" cy="75" r="17"/>
+<path d="M75 7V143M7 75H143" stroke="rgba(79,208,255,.22)"/>
+<g class="sweep"><path d="M75 75V7A68 68 0 0 1 134 41Z" fill="rgba(79,208,255,.16)"/><path d="M75 75V7" stroke="#4fd0ff"/></g>
+<rect x="70" y="65" width="10" height="20" rx="2" fill="#081726" stroke="#4fd0ff"/>
+<circle id="blip" cx="75" cy="5" r="6" fill="#3ee8a4" style="display:none;stroke:none;filter:drop-shadow(0 0 5px #3ee8a4)"/>
 </svg>
-<div><div class="lbl" id="phone">Phone --</div><div class="dbm" id="dbm">-- dBm</div><div class="bar"><i id="barI"></i></div>
-<div class="lbl" style="color:var(--tx)" id="zone">--</div><div class="lbl">Unlock zone -65</div></div>
+<div class="px">
+<span class="lbl">Phone <span id="ph">--</span></span>
+<b id="dbm">-- dBm</b>
+<div class="bar"><i id="phb"></i></div>
+<span class="lbl" id="zone">Waiting</span>
+<span class="lbl key">Zone -65</span>
+</div>
+</div>
 </section>
 
 <section class="tiles">
-<div class="tile"><span class="lbl">Mode</span><b id="mode">--</b></div>
-<div class="tile"><span class="lbl">Engine</span><b id="engine">--</b></div>
-<div class="tile"><span class="lbl">Last</span><b id="last">--</b></div>
+<div class="tile"><span class="lbl">Mode</span><b id="md">--</b></div>
+<div class="tile"><span class="lbl">Engine</span><b id="en">--</b></div>
+<div class="tile"><span class="lbl">Last</span><b id="ls">--</b></div>
 </section>
 
-<div class="sec"><span class="lbl">Control</span></div>
-<button class="b big cmd" data-cmd="Unlock" type="button">UNLOCK</button>
+<section class="ctl">
+<div class="sec"><span class="lbl">Control</span><span id="msg">&gt; READY</span></div>
+<button class="big" data-cmd="Unlock">UNLOCK</button>
 <div class="row">
-<button class="b cmd" data-cmd="Lock" type="button">LOCK</button>
-<button class="b start" id="startBtn" type="button">START<small id="startHint">tap twice</small></button>
+<button data-cmd="Lock">LOCK</button>
+<button id="st" class="start">START<small>tap twice</small></button>
 </div>
 <div class="sec"><span class="lbl">Walk-up mode</span></div>
-<div class="row3">
-<button class="b cmd" id="mArm" data-cmd="Arm" type="button">ARM<small>start on approach</small></button>
-<button class="b cmd" id="mAuto" data-cmd="Auto" type="button">AUTO<small>walk-up unlock</small></button>
-<button class="b cmd" id="mOff" data-cmd="Off" type="button">OFF<small>buttons only</small></button>
+<div class="modes">
+<button id="mArm" data-cmd="Arm">ARM<small>start on approach</small></button>
+<button id="mAuto" data-cmd="Auto">AUTO<small>walk-up unlock</small></button>
+<button id="mOff" data-cmd="Off">OFF<small>buttons only</small></button>
 </div>
-<section class="k"><div class="lbl">Event log</div><ol id="events"></ol></section>
-<div class="lbl foot" id="foot">Bluetooth // live</div>
+<div class="k log" id="logBox"><span class="lbl">Log</span><pre id="log">--</pre><span class="lbl">+</span></div>
+</section>
 </div>
-<div id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
 const NAME = 'Ram Remote';
 const SVC = '8f1c0001-6a52-4d2e-9a4b-52414d313530';
 const CMD = '8f1c0002-6a52-4d2e-9a4b-52414d313530';
 const STAT = '8f1c0003-6a52-4d2e-9a4b-52414d313530';
-const $ = id => document.getElementById(id);
-const enc = new TextEncoder(), dec = new TextDecoder();
-let dev = null, cmdCh = null, statCh = null, connected = false, busy = false, pollTimer = null, retryTimer = null;
+const $ = id => document.getElementById(id), enc = new TextEncoder(), dec = new TextDecoder();
+let dev = null, cmdCh = null, statCh = null, connected = false, busy = false, pollT = null, retryT = null, armT = 0, last = null;
 
-/* Web Bluetooth allows one GATT operation at a time, so every operation goes through this queue. */
+/* Web Bluetooth runs one GATT operation at a time: every operation goes through this queue. */
 let chain = Promise.resolve();
 function op(fn) { const p = chain.then(fn, fn); chain = p.catch(() => {}); return p; }
 
-let toastT = null;
-function toast(text, bad) {
-  const t = $('toast'); t.textContent = text; t.className = 'show' + (bad ? ' bad' : '');
-  clearTimeout(toastT); toastT = setTimeout(() => { t.className = ''; }, 2600);
-}
-function pill(text, cls) { const p = $('pill'); p.textContent = text; p.className = 'pill ' + (cls || ''); }
-function setButtons(on) { document.querySelectorAll('.b.cmd,#startBtn').forEach(b => { b.disabled = !on; }); }
-function showSetup(msg) { $('setup').style.display = 'block'; $('setupMsg').innerHTML = msg; }
-function hideSetup() { $('setup').style.display = 'none'; }
-function withTimeout(p, ms, what) {
-  return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + ' timed out')), ms))]);
-}
+function say(t, bad) { $('msg').textContent = t; $('msg').style.color = bad ? 'var(--rd)' : ''; }
+function pill(t, c) { $('link').textContent = t; $('link').className = 'pill' + (c ? ' ' + c : ''); }
+function buttons(on) { document.querySelectorAll('button[data-cmd],#st').forEach(b => { b.disabled = !on; }); }
+function setup(msg) { $('setup').hidden = false; $('setupMsg').innerHTML = msg; }
+function timeout(p, ms, w) { return Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error(w + ' timed out')), ms))]); }
 
-function render(s) {
-  const avg = s.avg || 0;
-  $('phone').textContent = s.link ? 'Phone linked' : 'Phone not linked';
-  $('dbm').textContent = avg ? avg + ' dBm' : '-- dBm';
-  const pct = avg ? Math.max(0, Math.min(100, (avg + 95) * 2)) : 0;
-  $('barI').style.width = pct + '%';
-  $('zone').textContent = !avg ? '--' : avg >= -65 ? 'In unlock zone' : avg >= -76 ? 'In start zone' : avg >= -80 ? 'Near' : 'Weak';
-  const blip = $('blip');
-  if (avg) {   /* closer phone = blip nearer the centre */
-    const r = Math.max(8, Math.min(66, (-avg - 40) * 1.6));
-    blip.setAttribute('cx', 75 + r * 0.7); blip.setAttribute('cy', 75 - r * 0.7); blip.style.display = '';
-  } else blip.style.display = 'none';
-  const mode = s.armed ? 'ARM' : s.auto ? 'AUTO' : 'OFF';
-  $('mode').textContent = mode; $('mode').className = s.armed ? 'am' : '';
-  $('engine').textContent = s.engine ? 'ON' : 'OFF'; $('engine').className = s.engine ? 'am' : '';
-  $('last').textContent = s.last || '--';
-  $('mArm').classList.toggle('sel', !!s.armed);
+function show(s) {
+  last = s;
+  const linked = !!s.link, d = s.avg || 0;
+  $('ph').textContent = linked ? 'linked' : 'away';
+  $('dbm').textContent = linked && d ? d + ' dBm' : '-- dBm';
+  const f = linked && d ? Math.max(0, Math.min(1, (-30 - d) / 70)) : 1;
+  $('phb').style.width = linked && d ? ((1 - f) * 100) + '%' : '0';
+  const bl = $('blip');
+  bl.style.display = linked && d ? '' : 'none';
+  const a = (Date.now() / 40) % 360 * Math.PI / 180;
+  bl.setAttribute('cx', 75 + Math.sin(a) * f * 68);
+  bl.setAttribute('cy', 75 - Math.cos(a) * f * 68);
+  $('zone').textContent = !linked ? 'Not near' : d >= -65 ? 'In zone' : 'Out of zone';
+  $('md').textContent = (s.auto ? 'AUTO' : 'OFF') + (s.armed ? ' +ARM' : '');
   $('mAuto').classList.toggle('sel', !!s.auto);
   $('mOff').classList.toggle('sel', !s.auto);
-  const ol = $('events'); ol.textContent = '';
-  (s.ev || []).slice(0, 4).forEach(e => {
-    const li = document.createElement('li');
-    const a = document.createElement('span'); a.textContent = e[0];
-    const b = document.createElement('span'); b.textContent = e[1];
-    li.append(a, b); ol.append(li);
-  });
-  $('foot').textContent = 'Board on for ' + (s.up || '--') + ' // Bluetooth live';
+  $('mArm').classList.toggle('sel', !!s.armed);
+  $('en').textContent = s.engine ? 'ON' : 'OFF';
+  $('en').className = s.engine ? 'on' : '';
+  $('ls').textContent = s.last && s.last !== 'none since restart' ? s.last.toUpperCase() : 'NONE';
+  $('log').textContent = (s.ev || []).map(e => (e[0] + '         ').slice(0, 9) + ' ' + e[1]).join('\n') || '--';
 }
 
-async function exchange(name) {
-  await cmdCh.writeValueWithResponse(enc.encode(name));
-  const v = await statCh.readValue();
-  return JSON.parse(dec.decode(v));
+async function exchange(n) {
+  await cmdCh.writeValueWithResponse(enc.encode(n));
+  return JSON.parse(dec.decode(await statCh.readValue()));
 }
-
-function startPolling() {
-  stopPolling();
-  pollTimer = setInterval(() => {
+function poll() {
+  stopPoll();
+  pollT = setInterval(() => {
     if (!connected || busy || document.hidden) return;
-    op(() => exchange('Status')).then(render).catch(() => {});
+    op(() => exchange('Status')).then(show).catch(() => {});
   }, 2000);
 }
-function stopPolling() { if (pollTimer) clearInterval(pollTimer); pollTimer = null; }
+function stopPoll() { if (pollT) clearInterval(pollT); pollT = null; }
 
-async function waitForAdvert(d, ms) {
-  /* Chrome only opens GATT to a device it has heard in this page session. */
+/* Chrome opens GATT only to a device it has heard in this page session. */
+async function hear(d, ms) {
   if (!d.watchAdvertisements) return;
   const ac = new AbortController();
-  const heard = new Promise(res => d.addEventListener('advertisementreceived', res, { once: true }));
+  const h = new Promise(r => d.addEventListener('advertisementreceived', r, { once: true }));
   await d.watchAdvertisements({ signal: ac.signal });
-  try { await withTimeout(heard, ms, 'Listening'); } finally { ac.abort(); }
+  try { await timeout(h, ms, 'Listening'); } finally { ac.abort(); }
 }
 
 async function connect() {
-  clearTimeout(retryTimer);
+  clearTimeout(retryT);
   if (connected || busy) return;
-  if (!navigator.bluetooth) { pill('NO BLUETOOTH', 'off'); showSetup('This browser has no Web Bluetooth. Open this page in <b>Chrome</b>.'); return; }
+  if (!navigator.bluetooth) { pill('NO BT', 'err'); setup('This browser has no Web Bluetooth. Open this page in <b>Chrome</b>.'); return; }
   if (!navigator.bluetooth.getDevices) {
     pill('SETUP', 'wait');
-    showSetup('Turn on <b>chrome://flags/#enable-web-bluetooth-new-permissions-backend</b>, relaunch Chrome, then reload this page.');
+    setup('Turn on <b>chrome://flags/#enable-web-bluetooth-new-permissions-backend</b>, relaunch Chrome, then reload.');
     return;
   }
-  busy = true; setButtons(false);
+  busy = true; buttons(false);
   try {
-    const list = await navigator.bluetooth.getDevices();
-    dev = list.find(d => d.name === NAME);
-    if (!dev) { pill('SETUP', 'wait'); showSetup('Tap the button, then pick <b>Ram Remote</b> in the list.'); return; }
-    pill('SEARCHING', 'wait');
-    await waitForAdvert(dev, 12000);
-    pill('CONNECTING', 'wait');
-    const server = await withTimeout(dev.gatt.connect(), 15000, 'Connect');
+    dev = (await navigator.bluetooth.getDevices()).find(d => d.name === NAME);
+    if (!dev) { pill('SETUP', 'wait'); setup('Tap the button, then pick <b>Ram Remote</b>.'); return; }
+    pill('SEARCHING', 'wait'); say('> LISTENING FOR THE BOARD');
+    await hear(dev, 12000);
+    pill('CONNECTING', 'wait'); say('> CONNECTING');
+    const server = await timeout(dev.gatt.connect(), 15000, 'Connect');
     let svc;
     try { svc = await server.getPrimaryService(SVC); }
     catch (e) {
-      if (e.name === 'SecurityError') { pill('SETUP', 'wait'); showSetup('Chrome needs permission for the control service. Tap the button and pick <b>Ram Remote</b> again.'); return; }
-      if (e.name === 'NotFoundError') { pill('UPDATE', 'off'); showSetup('The phone still has the board\'s old service list. Turn the phone\'s <b>Bluetooth off and on</b>, wait 10 s, then reload.'); return; }
+      if (e.name === 'SecurityError') { pill('SETUP', 'wait'); setup('Chrome needs permission for the control service. Tap the button and pick <b>Ram Remote</b>.'); return; }
+      if (e.name === 'NotFoundError') { pill('UPDATE', 'err'); setup('The phone still has the old service list. Turn the phone\'s <b>Bluetooth off and on</b>, wait 10 s, then reload.'); return; }
       throw e;
     }
     cmdCh = await svc.getCharacteristic(CMD);
     statCh = await svc.getCharacteristic(STAT);
-    dev.addEventListener('gattserverdisconnected', onDrop, { once: true });
-    connected = true; hideSetup(); pill('LINK OK', 'on'); setButtons(true);
-    render(await op(() => exchange('Status')));
-    startPolling();
+    dev.addEventListener('gattserverdisconnected', drop, { once: true });
+    connected = true; $('setup').hidden = true; pill('LINK OK', 'on'); buttons(true); say('> READY');
+    show(await op(() => exchange('Status')));
+    poll();
   } catch (e) {
-    pill('NO BOARD', 'off');
-    toast(e.message.includes('Listening') ? 'Board not heard. Is the phone near it?' : 'Bluetooth: ' + e.message, true);
-    scheduleRetry();
+    pill('NO BOARD', 'err');
+    say(e.message.includes('Listening') ? '> BOARD NOT HEARD: ARE YOU NEAR IT?' : '> ' + e.message.toUpperCase(), true);
+    retry();
   } finally { busy = false; }
 }
+function drop() { connected = false; stopPoll(); buttons(false); pill('RECONNECTING', 'wait'); say('> LINK LOST, RECONNECTING', true); retry(1500); }
+function retry(ms) { clearTimeout(retryT); if (!document.hidden) retryT = setTimeout(connect, ms || 5000); }
 
-function onDrop() {
-  connected = false; stopPolling(); setButtons(false); pill('RECONNECTING', 'wait');
-  scheduleRetry(1500);
-}
-function scheduleRetry(ms) {
-  clearTimeout(retryTimer);
-  if (!document.hidden) retryTimer = setTimeout(connect, ms || 5000);
+async function go(n) {
+  if (!connected) { say('> NOT CONNECTED', true); return; }
+  say('> ' + n.toUpperCase() + ' ...');
+  try {
+    show(await op(() => exchange(n)));
+    say('> ' + n.toUpperCase() + ' SENT');
+    if (navigator.vibrate) navigator.vibrate(40);
+  } catch (e) { say('> ' + n.toUpperCase() + ' FAILED', true); }
 }
 
-async function setup() {
+/* START needs two taps within 3 s, so a stray tap never starts the engine. */
+function start() {
+  const b = $('st');
+  if (Date.now() < armT) { armT = 0; b.classList.remove('arm'); b.innerHTML = 'START<small>tap twice</small>'; go('Start'); return; }
+  armT = Date.now() + 3000; b.classList.add('arm'); b.innerHTML = 'CONFIRM<small>tap again in 3 s</small>';
+  setTimeout(() => { if (armT && Date.now() >= armT) { armT = 0; b.classList.remove('arm'); b.innerHTML = 'START<small>tap twice</small>'; } }, 3100);
+}
+
+document.querySelectorAll('button[data-cmd]').forEach(b => b.addEventListener('click', () => go(b.dataset.cmd)));
+$('st').addEventListener('click', start);
+$('logBox').addEventListener('click', () => $('logBox').classList.toggle('open'));
+$('setupBtn').addEventListener('click', async () => {
   try {
     await navigator.bluetooth.requestDevice({ filters: [{ name: NAME }], optionalServices: [SVC] });
-    hideSetup(); connect();
-  } catch (e) {
-    if (e.name !== 'NotFoundError') toast(e.message, true);
-  }
-}
-
-async function send(name, label) {
-  if (!connected) { toast('Not connected yet', true); return; }
-  try {
-    const s = await op(() => exchange(name));
-    render(s); toast(label + ' sent');
-  } catch (e) { toast(label + ' failed: ' + e.message, true); }
-}
-
-document.querySelectorAll('.b.cmd').forEach(b => b.addEventListener('click', () => send(b.dataset.cmd, b.dataset.cmd)));
-
-/* START needs two taps within 4 s, so a stray tap never starts the engine. */
-let startArmedUntil = 0, startTimer = null;
-$('startBtn').addEventListener('click', () => {
-  const now = Date.now(), b = $('startBtn');
-  if (now < startArmedUntil) {
-    startArmedUntil = 0; clearTimeout(startTimer); b.classList.remove('armed'); $('startHint').textContent = 'tap twice';
-    send('Start', 'Start');
-    return;
-  }
-  startArmedUntil = now + 4000; b.classList.add('armed'); $('startHint').textContent = 'tap again to start';
-  clearTimeout(startTimer);
-  startTimer = setTimeout(() => { startArmedUntil = 0; b.classList.remove('armed'); $('startHint').textContent = 'tap twice'; }, 4000);
+    $('setup').hidden = true; connect();
+  } catch (e) { if (e.name !== 'NotFoundError') say('> ' + e.message.toUpperCase(), true); }
 });
-
-$('setupBtn').addEventListener('click', setup);
-$('pill').addEventListener('click', () => { if (!connected) connect(); });
+$('link').addEventListener('click', () => { if (!connected) connect(); });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { stopPolling(); clearTimeout(retryTimer); }
-  else if (connected) startPolling(); else connect();
+  if (document.hidden) { stopPoll(); clearTimeout(retryT); }
+  else if (connected) poll(); else connect();
 });
-setButtons(false);
+setInterval(() => { if (last && connected) show(last); }, 120);   /* keeps the radar blip sweeping between status reads */
+buttons(false);
 connect();
-</script>
-</body></html>
+</script></body></html>
