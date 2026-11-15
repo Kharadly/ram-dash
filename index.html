@@ -2,143 +2,175 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#030912">
+<meta name="theme-color" content="#0c0d0f">
 <title>RAM 1500</title>
 <style>
-/* Bluetooth edition of the truck dashboard (same design as the board's page.html). Hosted on GitHub Pages; Chrome
-   Web Bluetooth attaches to the phone's existing walk-up link, so the phone keeps mobile internet. Public page:
-   no plate text and no secrets; only the paired phone can use the board's control service (bonded, encrypted link).
-   Military HUD in the truck's blue.
-   Shape language: every panel and button is cut top-left and bottom-right (.k draws the 1px edge with two layers). */
-:root{--bg:#030912;--p:#081726;--ln:#1d4468;--cy:#4fd0ff;--bl:#2f8cff;--dim:#8fb4d1;--tx:#e8f7ff;--am:#ffb840;--rd:#ff6464;--ok:#3ee8a4;
---m:"Roboto Mono","Cascadia Mono",Consolas,monospace;--s:Roboto,"Segoe UI",system-ui,sans-serif;--g:linear-gradient(var(--cy),var(--cy))}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--s);-webkit-tap-highlight-color:transparent;
-background-image:radial-gradient(90% 420px at 50% 0,rgba(47,140,255,.2),transparent),linear-gradient(rgba(79,208,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(79,208,255,.04) 1px,transparent 1px);background-size:auto,24px 24px,24px 24px;background-repeat:no-repeat,repeat,repeat}
-/* One screen, no scroll: the page fills the window height and the button rows soak up whatever is spare. */
-.wrap{max-width:500px;margin:0 auto;padding:10px max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));display:grid;gap:8px;grid-template:auto auto auto 1fr/minmax(0,1fr);min-height:min(100vh,780px);min-height:min(100dvh,780px)}
-.lbl{font:500 11px var(--m);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
-.on{color:var(--am)}
-.k,button,.pill,.tile{--c:14px;--b:var(--ln);--f:var(--p);position:relative;isolation:isolate;background:var(--b);
-clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
-.k:before,button:before,.pill:before,.tile:before{content:"";position:absolute;inset:1px;z-index:-1;background:var(--f);clip-path:inherit}
-.k{--c:12px;--f:linear-gradient(180deg,#0b2038,#06111d);padding:8px 12px}
-.k:after{content:"";position:absolute;inset:4px;pointer-events:none;background:var(--g) 100% 0/10px 2px,var(--g) 100% 0/2px 10px,var(--g) 0 100%/10px 2px,var(--g) 0 100%/2px 10px;background-repeat:no-repeat}
-header{display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:1px solid var(--ln)}
-.logo{height:40px;width:auto;flex:none;filter:drop-shadow(0 0 5px rgba(79,208,255,.45))}
-h1{margin:0 0 3px;font-size:20px;line-height:1;letter-spacing:.2em;font-weight:700}
-.pill{--c:7px;--b:var(--dim);margin-left:auto;font:700 11px var(--m);letter-spacing:.12em;padding:8px 11px;color:var(--dim);white-space:nowrap}
-.pill:after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-left:8px}
-.pill.on{--b:var(--ok);--f:#062a22;color:var(--ok)}.pill.on:after{box-shadow:0 0 8px var(--ok)}
-.pill.err{--b:var(--rd);color:var(--rd)}
-.top{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,9fr);gap:8px}
-.veh{display:grid;gap:2px;text-align:center}
-.holo{position:relative;overflow:hidden}
-.holo img{position:relative;display:block;height:108px;max-width:100%;object-fit:contain;margin:0 auto;filter:drop-shadow(0 0 5px rgba(79,208,255,.5));animation:flick 6s infinite}
-.holo svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:var(--cy)}
-.scanl{position:absolute;left:0;right:0;height:16%;top:-20%;background:linear-gradient(180deg,transparent,rgba(79,208,255,.16),transparent);animation:scanv 3.6s linear infinite}
-@keyframes scanv{to{top:110%}}
-@keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.7}98%{opacity:1}99%{opacity:.8}}
-@keyframes sw{to{transform:rotate(360deg)}}
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tile{--c:8px;display:grid;gap:1px;padding:6px 10px;min-width:0}
-.tile b{font:700 14px var(--m);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{height:3px;background:var(--ln)}.bar i{display:block;height:100%;width:0;background:var(--cy);transition:width .6s}
-.mid{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
-.radar{display:block;width:100px;height:100px}
-.radar circle{fill:none;stroke:rgba(79,208,255,.4)}
-.sweep{transform-origin:75px 75px;animation:sw 4s linear infinite}
-.px{display:grid;gap:4px;min-width:0}.px .lbl{letter-spacing:.1em;white-space:nowrap}
-#dbm{font:700 23px/1.1 var(--m);white-space:nowrap;text-shadow:0 0 10px rgba(79,208,255,.6)}
-#zone{color:var(--tx)}
-.key:before{content:"";display:inline-block;width:14px;border-top:2px dashed var(--ok);vertical-align:middle;margin-right:6px}
-.sec{display:flex;align-items:center;gap:10px;min-height:16px}
-.sec:after{content:"";flex:1;height:1px;background:var(--ln);order:1}
-#msg{order:2;font:700 12px var(--m);letter-spacing:.08em;color:var(--cy)}
-.ctl{display:grid;gap:8px;grid-template:auto minmax(84px,1.5fr) minmax(68px,1.1fr) auto minmax(60px,.9fr) auto/minmax(0,1fr)}
-button{--b:var(--bl);--f:linear-gradient(180deg,#113457,#0a1f36);font:700 21px var(--m);letter-spacing:.2em;text-indent:.2em;color:var(--tx);border:0;margin:0;
-padding:4px;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform .08s,filter .15s}
-button:active{transform:scale(.97);filter:brightness(1.4)}
-button small{display:block;font-weight:500;font-size:11px;letter-spacing:.1em;text-indent:.1em;color:var(--dim);margin-top:6px}
-.big{--c:18px;--b:var(--cy);--f:linear-gradient(180deg,#1b639a,#0d3157);font-size:32px;letter-spacing:.26em;text-indent:.26em;text-shadow:0 0 12px rgba(79,208,255,.7)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.start{--b:var(--am)}.start small{color:var(--am)}
-.start.arm{--f:var(--am);color:#1c1200;text-shadow:none}.start.arm small{color:inherit;font-weight:700}
-.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.modes button{--c:10px;--b:var(--ln);--f:var(--p);font-size:16px}
-.modes small{font-size:10px;letter-spacing:.04em;text-indent:0}
-.modes .sel{--b:var(--am);--f:linear-gradient(180deg,#6b4508,#33210a);color:var(--am);text-shadow:0 0 10px rgba(255,184,64,.7)}.sel:before{box-shadow:inset 0 0 14px rgba(255,184,64,.45)}.sel small{color:var(--tx);text-shadow:none}
-/* Event log: one line (the newest); tap it to open the full history. */
-.log{--c:8px;display:flex;gap:10px;align-items:baseline;padding:8px 12px}.log:after{display:none}
-#log{flex:1;min-width:0;margin:0;font:12px/18px var(--m);color:var(--dim);white-space:pre;height:18px;overflow:hidden}
-.log.open #log{white-space:pre-wrap;height:auto;max-height:40vh;overflow:auto}
-.setup{position:fixed;z-index:5;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:96px;max-width:476px;margin:0 auto;display:grid;gap:8px;padding:14px;box-shadow:0 0 0 100vmax rgba(3,9,18,.7)}.setup[hidden]{display:none}.setup p{margin:0;font:13px/1.45 var(--s);color:var(--dim)}.setup p b{color:var(--tx)}
-.setup button{min-height:56px;font-size:17px}
-button:disabled{filter:grayscale(.7) brightness(.6);cursor:default}
-.pill.wait{--b:var(--am);--f:#2a1d06;color:var(--am)}
-@media (max-height:640px){.veh{display:none}.top{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){.scanl,.sweep,.holo img{animation:none}button{transition:none}}
-</style></head><body><div class="wrap">
+/* Truck remote over Bluetooth. Chrome Web Bluetooth attaches to the phone's existing walk-up link, so the
+   phone keeps mobile internet. Public page: no plate, no secrets; only the paired phone can use the board.
+   Look: a quiet vehicle-maker app. Graphite surfaces, system type, colour only for state
+   (green = linked/locked, amber = engine/start, red = fault). One screen, no scroll on a phone. */
+:root{
+  --bg:#0c0d0f; --s1:#15171a; --s2:#1c1f23; --line:#26292e; --line2:#33373d;
+  --tx:#f2f3f5; --mut:#a0a6ad; --faint:#6c727a;
+  --ok:#3fbf7f; --amb:#f0a63a; --bad:#ef6060;
+  --r:16px; color-scheme:dark}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--bg)}
+body{color:var(--tx);font:15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+button:focus-visible{outline:2px solid var(--mut);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:10px;
+  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 
-<header>
-<img id="logo" class="logo" alt="Ram" src="logo.webp">
-<div><h1>RAM 1500</h1><div class="lbl">Warlock // 5.7L 4x4</div></div>
-<div id="link" class="pill">NO LINK</div>
+/* Header */
+.top{display:flex;align-items:center;gap:12px}
+.top img{width:30px;height:30px;object-fit:contain;filter:grayscale(1) brightness(1.9) contrast(1.1)}
+.top .name{font-weight:600;font-size:18px;letter-spacing:.01em}
+.top .sub{color:var(--mut);font-size:13px}
+.conn{margin-left:auto;display:flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--line2);border-radius:999px;font-size:13px;color:var(--mut);white-space:nowrap}
+.conn i{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.conn.ok{color:var(--tx)}.conn.ok i{background:var(--ok)}
+.conn.wait i{background:var(--amb)}.conn.err i{background:var(--bad)}
+
+/* Vehicle */
+.hero{position:relative;display:grid;justify-items:center;gap:6px;padding-top:2px}
+.hero img{height:clamp(96px,16vh,136px);max-width:100%;object-fit:contain;mix-blend-mode:screen;
+  filter:grayscale(1) brightness(1.15) contrast(1.25)}
+.hero:before{content:"";position:absolute;left:18%;right:18%;top:68%;height:28%;background:radial-gradient(closest-side,rgba(255,255,255,.07),transparent);z-index:-1}
+.state{text-align:center}
+.state b{display:block;font-size:22px;font-weight:600;letter-spacing:-.01em}
+.state span{color:var(--mut);font-size:13px}
+
+/* Readouts */
+.stats{display:grid;grid-template-columns:1.25fr 1fr 1fr;background:var(--s1);border:1px solid var(--line);border-radius:var(--r)}
+.stat{padding:11px 12px;min-width:0}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat .k{color:var(--faint);font-size:12px}
+.stat .v{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sig{display:flex;align-items:end;gap:8px}
+.bars{display:flex;align-items:end;gap:2px;height:16px;flex:none}
+.bars i{width:4px;border-radius:1px;background:var(--line2)}
+.bars i:nth-child(1){height:5px}.bars i:nth-child(2){height:8px}.bars i:nth-child(3){height:11px}.bars i:nth-child(4){height:14px}.bars i:nth-child(5){height:16px}
+.bars i.on{background:var(--tx)}
+.stat .v.run{color:var(--amb)}
+
+/* Lock / unlock */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ctl{display:grid;justify-items:center;align-content:center;gap:7px;min-height:90px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r);transition:background .15s,transform .08s}
+.ctl:active{transform:scale(.98);background:var(--s2)}
+.ctl svg{width:30px;height:30px;stroke:var(--tx);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ctl span{font-weight:600}
+.ctl.cur{border-color:var(--line2);background:var(--s2)}
+.ctl.cur svg{stroke:var(--ok)}
+
+/* Remote start: press and hold */
+.start{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;padding:0 18px;min-height:58px;border:1px solid var(--line);border-radius:var(--r);background:var(--s1);text-align:left}
+.start .fill{position:absolute;inset:0;background:rgba(240,166,58,.18);transform-origin:left;transform:scaleX(0)}
+.start.hold .fill{transform:scaleX(1);transition:transform 1.2s linear}
+.start svg{position:relative;width:26px;height:26px;stroke:var(--amb);fill:none;stroke-width:1.8;stroke-linecap:round}
+.start div{position:relative}
+.start b{display:block;font-weight:600}
+.start small{color:var(--mut);font-size:13px}
+.start.running{border-color:rgba(240,166,58,.45)}
+
+/* Walk-up */
+.walk{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;display:grid;gap:10px}
+.head{display:flex;align-items:baseline;justify-content:space-between}
+.head b{font-weight:600}
+.head span{color:var(--faint);font-size:12px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{padding:9px 0;border-radius:9px;color:var(--mut);font-weight:500}
+.seg button.sel{background:var(--s2);color:var(--tx);box-shadow:0 0 0 1px var(--line2)}
+.armrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.armrow div{flex:1}
+.armrow small{display:block;color:var(--mut);font-size:13px}
+.sw{flex:none;width:46px;height:28px;border-radius:999px;background:var(--line2);position:relative;transition:background .15s}
+.sw:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#d9dce0;transition:transform .15s}
+.armrow[aria-checked="true"] .sw{background:var(--amb)}
+.armrow[aria-checked="true"] .sw:after{transform:translateX(18px);background:#fff}
+
+/* Activity */
+.act{display:grid;gap:6px;padding:0 2px}
+.act ul{list-style:none;padding:0;display:grid;gap:5px}
+.act li{display:flex;gap:10px;font-size:13px;color:var(--mut)}
+.act li time{flex:none;width:52px;color:var(--faint);white-space:nowrap}
+.act li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act.open li span{white-space:normal}
+.act li:nth-child(n+3){display:none}.act.open li:nth-child(n+3){display:flex}
+.act .head button{color:var(--mut);font-size:13px}
+
+/* Messages and setup */
+.note{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translate(-50%,8px);opacity:0;transition:opacity .2s,transform .2s;
+  background:var(--s2);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;font-size:14px;pointer-events:none;max-width:calc(100% - 32px)}
+.note.show{opacity:1;transform:translate(-50%,0)}.note.bad{border-color:rgba(239,96,96,.5)}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;align-items:end;z-index:5}
+.sheet[hidden]{display:none}
+.sheet div{background:var(--s1);border-top:1px solid var(--line2);border-radius:20px 20px 0 0;padding:22px max(20px,env(safe-area-inset-left)) max(22px,env(safe-area-inset-bottom));display:grid;gap:12px;max-width:480px;width:100%;margin:0 auto}
+.sheet b{font-size:18px;font-weight:600}
+.sheet p{color:var(--mut);font-size:14px}.sheet p em{color:var(--tx);font-style:normal}
+.sheet button{background:var(--tx);color:var(--bg);font-weight:600;border-radius:12px;padding:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-height:700px){.hero img{height:84px}.ctl{min-height:80px}.state b{font-size:19px}}
+</style></head><body>
+<main class="app">
+<header class="top">
+  <img src="logo.webp" alt="Ram">
+  <div><div class="name">RAM 1500</div><div class="sub">Warlock · 5.7L · 4x4</div></div>
+  <button class="conn" id="conn" type="button"><i></i><span id="connT">Starting</span></button>
 </header>
 
-<section class="k setup" id="setup" hidden>
-<span class="lbl">Set up once</span>
-<p id="setupMsg">Chrome needs permission to talk to the board.</p>
-<button id="setupBtn" type="button">CONNECT TO BOARD</button>
+<section class="hero">
+  <img src="ram.webp" alt="Ram 1500">
+  <div class="state"><b id="stateT">—</b><span id="stateS">Waiting for the board</span></div>
 </section>
 
-<section class="top">
-<div class="k veh">
-<div class="holo">
-<svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle cx="100" cy="55" r="51" opacity=".35"/><circle cx="100" cy="55" r="43" stroke-dasharray="2 6" opacity=".6"/><path d="M30 55H50M150 55H170M100 1V9M100 101V109" opacity=".7"/></svg>
-<img id="car" alt="Ram 1500 hologram" src="ram.webp"><i class="scanl"></i></div>
-<span class="lbl">Warlock</span>
-</div>
-<div class="k mid">
-<svg class="radar" viewBox="0 0 150 150" aria-label="Phone distance radar">
-<circle cx="75" cy="75" r="72" stroke-width="4" stroke-dasharray="1 11.57"/><circle cx="75" cy="75" r="68"/><circle cx="75" cy="75" r="51"/><circle cx="75" cy="75" r="34" style="stroke:#3ee8a4;stroke-dasharray:4 4;stroke-width:2"/><circle cx="75" cy="75" r="17"/>
-<path d="M75 7V143M7 75H143" stroke="rgba(79,208,255,.22)"/>
-<g class="sweep"><path d="M75 75V7A68 68 0 0 1 134 41Z" fill="rgba(79,208,255,.16)"/><path d="M75 75V7" stroke="#4fd0ff"/></g>
-<rect x="70" y="65" width="10" height="20" rx="2" fill="#081726" stroke="#4fd0ff"/>
-<circle id="blip" cx="75" cy="5" r="6" fill="#3ee8a4" style="display:none;stroke:none;filter:drop-shadow(0 0 5px #3ee8a4)"/>
-</svg>
-<div class="px">
-<span class="lbl">Phone <span id="ph">--</span></span>
-<b id="dbm">-- dBm</b>
-<div class="bar"><i id="phb"></i></div>
-<span class="lbl" id="zone">Waiting</span>
-<span class="lbl key">Zone -65</span>
-</div>
-</div>
+<section class="stats" aria-label="Status">
+  <div class="stat"><div class="k">Phone signal</div>
+    <div class="sig"><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i></div><div class="v" id="dbm">—</div></div></div>
+  <div class="stat"><div class="k">Distance</div><div class="v" id="zone">—</div></div>
+  <div class="stat"><div class="k">Engine</div><div class="v" id="eng">—</div></div>
 </section>
 
-<section class="tiles">
-<div class="tile"><span class="lbl">Mode</span><b id="md">--</b></div>
-<div class="tile"><span class="lbl">Engine</span><b id="en">--</b></div>
-<div class="tile"><span class="lbl">Last</span><b id="ls">--</b></div>
+<section class="pair">
+  <button class="ctl" id="bLock" data-cmd="Lock" type="button">
+    <svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><path d="M12 14.6v2"/></svg>
+    <span>Lock</span></button>
+  <button class="ctl" id="bUnlock" data-cmd="Unlock" type="button">
+    <svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 7.6-1.8"/><path d="M12 14.6v2"/></svg>
+    <span>Unlock</span></button>
 </section>
 
-<section class="ctl">
-<div class="sec"><span class="lbl">Control</span><span id="msg">&gt; READY</span></div>
-<button class="big" data-cmd="Unlock">UNLOCK</button>
-<div class="row">
-<button data-cmd="Lock">LOCK</button>
-<button id="st" class="start">START<small>tap twice</small></button>
-</div>
-<div class="sec"><span class="lbl">Walk-up mode</span></div>
-<div class="modes">
-<button id="mArm" data-cmd="Arm">ARM<small>start on approach</small></button>
-<button id="mAuto" data-cmd="Auto">AUTO<small>walk-up unlock</small></button>
-<button id="mOff" data-cmd="Off">OFF<small>buttons only</small></button>
-</div>
-<div class="k log" id="logBox"><span class="lbl">Log</span><pre id="log">--</pre><span class="lbl">+</span></div>
+<button class="start" id="bStart" type="button">
+  <span class="fill"></span>
+  <svg viewBox="0 0 24 24"><path d="M12 3.5v8"/><path d="M7.1 6.6a7 7 0 1 0 9.8 0"/></svg>
+  <div><b>Remote start</b><small id="startHint">Press and hold</small></div>
+</button>
+
+<section class="walk">
+  <div class="head"><b>Walk-up</b><span>Unlock zone −65 dBm</span></div>
+  <div class="seg" role="radiogroup" aria-label="Walk-up mode">
+    <button type="button" role="radio" id="mOff" data-cmd="Off">Off</button>
+    <button type="button" role="radio" id="mAuto" data-cmd="Auto">Auto unlock</button>
+  </div>
+  <button class="armrow" id="bArm" type="button" role="switch" aria-checked="false">
+    <div>Start on next approach<small>Engine starts when you walk up, once</small></div><span class="sw"></span>
+  </button>
 </section>
-</div>
+
+<section class="act" id="act">
+  <div class="head"><b>Activity</b><button type="button" id="more">Show all</button></div>
+  <ul id="events"><li><time>—</time><span>No activity yet</span></li></ul>
+</section>
+</main>
+
+<div class="sheet" id="sheet" hidden><div>
+  <b>Connect to your truck</b>
+  <p id="sheetMsg">Chrome needs permission to talk to the board.</p>
+  <button type="button" id="sheetBtn">Choose Ram Remote</button>
+</div></div>
+<div class="note" id="note" role="status" aria-live="polite"></div>
+
 <script>
 'use strict';
 const NAME = 'Ram Remote';
@@ -146,39 +178,54 @@ const SVC = '8f1c0001-6a52-4d2e-9a4b-52414d313530';
 const CMD = '8f1c0002-6a52-4d2e-9a4b-52414d313530';
 const STAT = '8f1c0003-6a52-4d2e-9a4b-52414d313530';
 const $ = id => document.getElementById(id), enc = new TextEncoder(), dec = new TextDecoder();
-let dev = null, cmdCh = null, statCh = null, connected = false, busy = false, pollT = null, retryT = null, armT = 0, last = null;
+let dev = null, cmdCh = null, statCh = null, connected = false, busy = false, pollT = null, retryT = null, cur = null;
 
 /* Web Bluetooth runs one GATT operation at a time: every operation goes through this queue. */
 let chain = Promise.resolve();
 function op(fn) { const p = chain.then(fn, fn); chain = p.catch(() => {}); return p; }
 
-function say(t, bad) { $('msg').textContent = t; $('msg').style.color = bad ? 'var(--rd)' : ''; }
-function pill(t, c) { $('link').textContent = t; $('link').className = 'pill' + (c ? ' ' + c : ''); }
-function buttons(on) { document.querySelectorAll('button[data-cmd],#st').forEach(b => { b.disabled = !on; }); }
-function setup(msg) { $('setup').hidden = false; $('setupMsg').innerHTML = msg; }
+let noteT = null;
+function note(t, bad) {
+  const n = $('note'); n.textContent = t; n.className = 'note show' + (bad ? ' bad' : '');
+  clearTimeout(noteT); noteT = setTimeout(() => { n.className = 'note' + (bad ? ' bad' : ''); }, 2400);
+}
+function conn(text, cls) { $('connT').textContent = text; $('conn').className = 'conn ' + (cls || ''); }
+function enable(on) { document.querySelectorAll('[data-cmd],#bStart,#bArm').forEach(b => { b.disabled = !on; }); }
+function sheet(msg) { $('sheetMsg').innerHTML = msg; $('sheet').hidden = false; }
 function timeout(p, ms, w) { return Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error(w + ' timed out')), ms))]); }
 
+/* Board ages look like " 4m07s" or " 2h15m"; shown as "4 min", "2 h", "21 s". */
+function ago(a) {
+  const h = /(\d+)h/.exec(a), m = /(\d+)m(?!s)/.exec(a) || /(\d+)m\d/.exec(a), s = /(\d+)s/.exec(a);
+  if (h) return h[1] + ' h';
+  if (m && +m[1] > 0) return m[1] + ' min';
+  return (s ? +s[1] : 0) + ' s';
+}
 function show(s) {
-  last = s;
-  const linked = !!s.link, d = s.avg || 0;
-  $('ph').textContent = linked ? 'linked' : 'away';
-  $('dbm').textContent = linked && d ? d + ' dBm' : '-- dBm';
-  const f = linked && d ? Math.max(0, Math.min(1, (-30 - d) / 70)) : 1;
-  $('phb').style.width = linked && d ? ((1 - f) * 100) + '%' : '0';
-  const bl = $('blip');
-  bl.style.display = linked && d ? '' : 'none';
-  const a = (Date.now() / 40) % 360 * Math.PI / 180;
-  bl.setAttribute('cx', 75 + Math.sin(a) * f * 68);
-  bl.setAttribute('cy', 75 - Math.cos(a) * f * 68);
-  $('zone').textContent = !linked ? 'Not near' : d >= -65 ? 'In zone' : 'Out of zone';
-  $('md').textContent = (s.auto ? 'AUTO' : 'OFF') + (s.armed ? ' +ARM' : '');
-  $('mAuto').classList.toggle('sel', !!s.auto);
-  $('mOff').classList.toggle('sel', !s.auto);
-  $('mArm').classList.toggle('sel', !!s.armed);
-  $('en').textContent = s.engine ? 'ON' : 'OFF';
-  $('en').className = s.engine ? 'on' : '';
-  $('ls').textContent = s.last && s.last !== 'none since restart' ? s.last.toUpperCase() : 'NONE';
-  $('log').textContent = (s.ev || []).map(e => (e[0] + '         ').slice(0, 9) + ' ' + e[1]).join('\n') || '--';
+  cur = s;
+  const d = s.link ? (s.avg || 0) : 0, last = (s.last || '').toLowerCase();
+  /* Lock state comes from the last command: the truck sends no feedback. */
+  $('stateT').textContent = s.engine ? 'Engine running' : last === 'lock' ? 'Locked' : last === 'unlock' ? 'Unlocked' : 'Ready';
+  $('stateS').textContent = 'Walk-up ' + (s.auto ? 'auto unlock' : 'off') + (s.armed ? ' · start armed' : '');
+  const lvl = !d ? 0 : d >= -55 ? 5 : d >= -62 ? 4 : d >= -68 ? 3 : d >= -76 ? 2 : 1;
+  $('bars').querySelectorAll('i').forEach((b, i) => b.classList.toggle('on', i < lvl));
+  $('dbm').textContent = d ? d + ' dBm' : '—';
+  $('zone').textContent = !s.link ? 'Away' : d >= -65 ? 'At truck' : d >= -76 ? 'Close' : 'Far';
+  $('eng').textContent = s.engine ? 'Running' : 'Off';
+  $('eng').className = 'v' + (s.engine ? ' run' : '');
+  $('bLock').classList.toggle('cur', last === 'lock');
+  $('bUnlock').classList.toggle('cur', last === 'unlock');
+  $('bStart').classList.toggle('running', !!s.engine);
+  $('mAuto').classList.toggle('sel', !!s.auto); $('mAuto').setAttribute('aria-checked', !!s.auto);
+  $('mOff').classList.toggle('sel', !s.auto); $('mOff').setAttribute('aria-checked', !s.auto);
+  $('bArm').setAttribute('aria-checked', !!s.armed);
+  const ul = $('events'); ul.textContent = '';
+  (s.ev || []).forEach(e => {
+    const li = document.createElement('li'), t = document.createElement('time'), x = document.createElement('span');
+    t.textContent = ago(e[0]); x.textContent = e[1].charAt(0).toUpperCase() + e[1].slice(1);
+    li.append(t, x); ul.append(li);
+  });
+  if (!ul.children.length) ul.innerHTML = '<li><time>—</time><span>No activity yet</span></li>';
 }
 
 async function exchange(n) {
@@ -187,10 +234,7 @@ async function exchange(n) {
 }
 function poll() {
   stopPoll();
-  pollT = setInterval(() => {
-    if (!connected || busy || document.hidden) return;
-    op(() => exchange('Status')).then(show).catch(() => {});
-  }, 2000);
+  pollT = setInterval(() => { if (connected && !busy && !document.hidden) op(() => exchange('Status')).then(show).catch(() => {}); }, 2000);
 }
 function stopPoll() { if (pollT) clearInterval(pollT); pollT = null; }
 
@@ -206,75 +250,81 @@ async function hear(d, ms) {
 async function connect() {
   clearTimeout(retryT);
   if (connected || busy) return;
-  if (!navigator.bluetooth) { pill('NO BT', 'err'); setup('This browser has no Web Bluetooth. Open this page in <b>Chrome</b>.'); return; }
-  if (!navigator.bluetooth.getDevices) {
-    pill('SETUP', 'wait');
-    setup('Turn on <b>chrome://flags/#enable-web-bluetooth-new-permissions-backend</b>, relaunch Chrome, then reload.');
-    return;
-  }
-  busy = true; buttons(false);
+  if (!navigator.bluetooth) { conn('No Bluetooth', 'err'); sheet('This browser has no Web Bluetooth. Open this page in <em>Chrome</em>.'); return; }
+  if (!navigator.bluetooth.getDevices) { conn('Setup', 'wait'); sheet('Turn on <em>chrome://flags/#enable-web-bluetooth-new-permissions-backend</em>, relaunch Chrome, then reload.'); return; }
+  busy = true; enable(false);
   try {
     dev = (await navigator.bluetooth.getDevices()).find(d => d.name === NAME);
-    if (!dev) { pill('SETUP', 'wait'); setup('Tap the button, then pick <b>Ram Remote</b>.'); return; }
-    pill('SEARCHING', 'wait'); say('> LISTENING FOR THE BOARD');
+    if (!dev) { conn('Setup', 'wait'); sheet('Tap the button, then choose <em>Ram Remote</em> in the list.'); return; }
+    conn('Searching', 'wait');
     await hear(dev, 12000);
-    pill('CONNECTING', 'wait'); say('> CONNECTING');
+    conn('Connecting', 'wait');
     const server = await timeout(dev.gatt.connect(), 15000, 'Connect');
     let svc;
     try { svc = await server.getPrimaryService(SVC); }
     catch (e) {
-      if (e.name === 'SecurityError') { pill('SETUP', 'wait'); setup('Chrome needs permission for the control service. Tap the button and pick <b>Ram Remote</b>.'); return; }
-      if (e.name === 'NotFoundError') { pill('UPDATE', 'err'); setup('The phone still has the old service list. Turn the phone\'s <b>Bluetooth off and on</b>, wait 10 s, then reload.'); return; }
+      if (e.name === 'SecurityError') { conn('Setup', 'wait'); sheet('Chrome needs permission for the truck controls. Tap the button and choose <em>Ram Remote</em>.'); return; }
+      if (e.name === 'NotFoundError') { conn('Update', 'err'); sheet('The phone still has an old copy of the board\'s services. Turn the phone\'s <em>Bluetooth off and on</em>, wait 10 seconds, then reload.'); return; }
       throw e;
     }
     cmdCh = await svc.getCharacteristic(CMD);
     statCh = await svc.getCharacteristic(STAT);
     dev.addEventListener('gattserverdisconnected', drop, { once: true });
-    connected = true; $('setup').hidden = true; pill('LINK OK', 'on'); buttons(true); say('> READY');
+    connected = true; $('sheet').hidden = true; conn('Connected', 'ok'); enable(true);
     show(await op(() => exchange('Status')));
     poll();
   } catch (e) {
-    pill('NO BOARD', 'err');
-    say(e.message.includes('Listening') ? '> BOARD NOT HEARD: ARE YOU NEAR IT?' : '> ' + e.message.toUpperCase(), true);
+    conn('Not found', 'err');
+    note(e.message.includes('Listening') ? 'Truck not in range' : 'Bluetooth: ' + e.message, true);
     retry();
   } finally { busy = false; }
 }
-function drop() { connected = false; stopPoll(); buttons(false); pill('RECONNECTING', 'wait'); say('> LINK LOST, RECONNECTING', true); retry(1500); }
+function drop() { connected = false; stopPoll(); enable(false); conn('Reconnecting', 'wait'); retry(1500); }
 function retry(ms) { clearTimeout(retryT); if (!document.hidden) retryT = setTimeout(connect, ms || 5000); }
 
+const DONE = { Lock: 'Lock sent', Unlock: 'Unlock sent', Start: 'Remote start sent', Auto: 'Walk-up unlock on', Off: 'Walk-up off', Arm: 'Start on approach armed', Disarm: 'Start on approach off' };
 async function go(n) {
-  if (!connected) { say('> NOT CONNECTED', true); return; }
-  say('> ' + n.toUpperCase() + ' ...');
+  if (!connected) { note('Not connected', true); return; }
   try {
     show(await op(() => exchange(n)));
-    say('> ' + n.toUpperCase() + ' SENT');
-    if (navigator.vibrate) navigator.vibrate(40);
-  } catch (e) { say('> ' + n.toUpperCase() + ' FAILED', true); }
+    note(DONE[n] || n);
+    if (navigator.vibrate) navigator.vibrate(30);
+  } catch (e) { note(n + ' failed. Try again.', true); }
 }
 
-/* START needs two taps within 3 s, so a stray tap never starts the engine. */
-function start() {
-  const b = $('st');
-  if (Date.now() < armT) { armT = 0; b.classList.remove('arm'); b.innerHTML = 'START<small>tap twice</small>'; go('Start'); return; }
-  armT = Date.now() + 3000; b.classList.add('arm'); b.innerHTML = 'CONFIRM<small>tap again in 3 s</small>';
-  setTimeout(() => { if (armT && Date.now() >= armT) { armT = 0; b.classList.remove('arm'); b.innerHTML = 'START<small>tap twice</small>'; } }, 3100);
-}
+document.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', () => go(b.dataset.cmd)));
+$('bArm').addEventListener('click', () => go(cur && cur.armed ? 'Disarm' : 'Arm'));
 
-document.querySelectorAll('button[data-cmd]').forEach(b => b.addEventListener('click', () => go(b.dataset.cmd)));
-$('st').addEventListener('click', start);
-$('logBox').addEventListener('click', () => $('logBox').classList.toggle('open'));
-$('setupBtn').addEventListener('click', async () => {
+/* Remote start: press and hold 1.2 s, so a stray tap never starts the engine. */
+let holdT = null;
+const st = $('bStart');
+function holdStart(e) {
+  if (st.disabled) return;
+  e.preventDefault();
+  st.classList.add('hold'); $('startHint').textContent = 'Keep holding';
+  holdT = setTimeout(() => { holdT = null; holdEnd(); go('Start'); }, 1200);
+}
+function holdEnd() {
+  if (holdT) { clearTimeout(holdT); holdT = null; note('Hold to start'); }
+  st.classList.remove('hold'); $('startHint').textContent = 'Press and hold';
+}
+st.addEventListener('pointerdown', holdStart);
+['pointerup', 'pointerleave', 'pointercancel'].forEach(t => st.addEventListener(t, () => { if (st.classList.contains('hold')) holdEnd(); }));
+st.addEventListener('contextmenu', e => e.preventDefault());
+
+$('more').addEventListener('click', () => { const a = $('act'); a.classList.toggle('open'); $('more').textContent = a.classList.contains('open') ? 'Show less' : 'Show all'; });
+$('sheetBtn').addEventListener('click', async () => {
   try {
     await navigator.bluetooth.requestDevice({ filters: [{ name: NAME }], optionalServices: [SVC] });
-    $('setup').hidden = true; connect();
-  } catch (e) { if (e.name !== 'NotFoundError') say('> ' + e.message.toUpperCase(), true); }
+    $('sheet').hidden = true; connect();
+  } catch (e) { if (e.name !== 'NotFoundError') note(e.message, true); }
 });
-$('link').addEventListener('click', () => { if (!connected) connect(); });
+$('conn').addEventListener('click', () => { if (!connected) connect(); });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { stopPoll(); clearTimeout(retryT); }
   else if (connected) poll(); else connect();
 });
-setInterval(() => { if (last && connected) show(last); }, 120);   /* keeps the radar blip sweeping between status reads */
-buttons(false);
+enable(false);
 connect();
-</script></body></html>
+</script>
+</body></html>
