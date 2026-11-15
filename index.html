@@ -2,174 +2,218 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#0c0d0f">
+<meta name="theme-color" content="#04090f">
 <title>RAM 1500</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap">
 <style>
-/* Truck remote over Bluetooth. Chrome Web Bluetooth attaches to the phone's existing walk-up link, so the
-   phone keeps mobile internet. Public page: no plate, no secrets; only the paired phone can use the board.
-   Look: a quiet vehicle-maker app. Graphite surfaces, system type, colour only for state
-   (green = linked/locked, amber = engine/start, red = fault). One screen, no scroll on a phone. */
+/* Truck remote over Bluetooth: Chrome Web Bluetooth attaches to the phone's existing walk-up link, so the phone
+   keeps mobile internet. Public page: no plate text, no secrets; only the paired phone can use the board.
+   Look: tactical console in army blue. Rules that keep it from looking cheap: 1px strokes only, 8px chamfers,
+   an 8px spacing grid, real units on every number, glow only on the radar and the vehicle hologram. */
 :root{
-  --bg:#0c0d0f; --s1:#15171a; --s2:#1c1f23; --line:#26292e; --line2:#33373d;
-  --tx:#f2f3f5; --mut:#a0a6ad; --faint:#6c727a;
-  --ok:#3fbf7f; --amb:#f0a63a; --bad:#ef6060;
-  --r:16px; color-scheme:dark}
+  --bg:#04090f; --p0:#061019; --p1:#08151f; --edge:#173447; --edge2:#22506b; --tick:#2b6683;
+  --cy:#43c8f5; --cy2:#8fe0ff; --tx:#d9f2fc; --mut:#7fa5b8; --faint:#4b6e80;
+  --ok:#3fe0a0; --amb:#ffb447; --red:#ff5d5d;
+  --hud:"Rajdhani","Bahnschrift","Segoe UI",system-ui,sans-serif; --mono:"Share Tech Mono","Roboto Mono",Consolas,monospace;
+  color-scheme:dark}
 *{box-sizing:border-box;margin:0}
-html,body{height:100%;background:var(--bg)}
-body{color:var(--tx);font:15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums}
+html,body{min-height:100%;background:var(--bg)}
+body{color:var(--tx);font:500 14px/1.3 var(--hud);-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;
+  background:radial-gradient(120% 70% at 50% 0,#0a2233 0,transparent 60%),
+   linear-gradient(rgba(67,200,245,.035) 1px,transparent 1px) 0 0/16px 16px,
+   linear-gradient(90deg,rgba(67,200,245,.035) 1px,transparent 1px) 0 0/16px 16px,var(--bg)}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-button:focus-visible{outline:2px solid var(--mut);outline-offset:2px}
-button:disabled{opacity:.45;cursor:default}
-.app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:10px;
-  padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+button:focus-visible{outline:1px solid var(--cy2);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:8px;min-height:100vh;min-height:100dvh;
+  padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+.lb{font:12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.mono{font-family:var(--mono)}
+
+/* Chamfered frame: 1px edge drawn as a background layer under a clipped fill. */
+.fr{--c:8px;--e:var(--edge);--f:linear-gradient(180deg,var(--p1),var(--p0));position:relative;isolation:isolate;background:var(--e);
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
+.fr:before{content:"";position:absolute;inset:1px;z-index:-1;background:var(--f);clip-path:inherit}
+/* Corner brackets on key panels. */
+.br:after{content:"";position:absolute;inset:3px;pointer-events:none;
+  background:linear-gradient(var(--cy),var(--cy)) right top/9px 1px,linear-gradient(var(--cy),var(--cy)) right top/1px 9px,
+  linear-gradient(var(--cy),var(--cy)) left bottom/9px 1px,linear-gradient(var(--cy),var(--cy)) left bottom/1px 9px;background-repeat:no-repeat;opacity:.8}
 
 /* Header */
-.top{display:flex;align-items:center;gap:12px}
-.top img{width:30px;height:30px;object-fit:contain;filter:grayscale(1) brightness(1.9) contrast(1.1)}
-.top .name{font-weight:600;font-size:18px;letter-spacing:.01em}
-.top .sub{color:var(--mut);font-size:13px}
-.conn{margin-left:auto;display:flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--line2);border-radius:999px;font-size:13px;color:var(--mut);white-space:nowrap}
-.conn i{width:8px;height:8px;border-radius:50%;background:var(--faint)}
-.conn.ok{color:var(--tx)}.conn.ok i{background:var(--ok)}
-.conn.wait i{background:var(--amb)}.conn.err i{background:var(--bad)}
+.top{display:flex;align-items:center;gap:10px;padding:2px 2px 8px;border-bottom:1px solid var(--edge);position:relative}
+.top:after{content:"";position:absolute;left:0;bottom:-1px;width:64px;height:1px;background:var(--cy)}
+.top img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 0 4px rgba(67,200,245,.35))}
+.top h1{font:700 21px/1 var(--hud);letter-spacing:.18em}
+.top .lb{margin-top:3px;font-size:11px}
+.link{margin-left:auto;display:grid;justify-items:end;gap:3px}
+.link .st{display:flex;align-items:center;gap:6px;font:600 13px/1 var(--hud);letter-spacing:.16em;color:var(--mut)}
+.link .st i{width:7px;height:7px;background:var(--faint)}
+.link.ok .st{color:var(--ok)}.link.ok .st i{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.link.wait .st{color:var(--amb)}.link.wait .st i{background:var(--amb)}
+.link.err .st{color:var(--red)}.link.err .st i{background:var(--red)}
+.link .lb{font-size:10px}
 
-/* Vehicle */
-.hero{position:relative;display:grid;justify-items:center;gap:6px;padding-top:2px}
-.hero img{height:clamp(96px,16vh,136px);max-width:100%;object-fit:contain;mix-blend-mode:screen;
-  filter:grayscale(1) brightness(1.15) contrast(1.25)}
-.hero:before{content:"";position:absolute;left:18%;right:18%;top:68%;height:28%;background:radial-gradient(closest-side,rgba(255,255,255,.07),transparent);z-index:-1}
-.state{text-align:center}
-.state b{display:block;font-size:22px;font-weight:600;letter-spacing:-.01em}
-.state span{color:var(--mut);font-size:13px}
+/* Tactical display: radar + vehicle */
+.tac{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);gap:8px}
+.radar{padding:6px}
+.radar svg{display:block;width:100%;height:auto}
+.radar text{font:7px var(--mono);fill:var(--faint);letter-spacing:.02em}
+.sweep{transform-origin:100px 100px;animation:sw 4s linear infinite}
+@keyframes sw{to{transform:rotate(360deg)}}
+.ping{transform-origin:center;transform-box:fill-box;animation:ping 2s ease-out infinite}
+@keyframes ping{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+.side{display:grid;grid-template-rows:auto 1fr;gap:8px;min-width:0}
+.unit{--f:#02070c;padding:6px 6px 5px;display:grid;gap:4px;overflow:hidden}
+.unit .img{position:relative;height:92px;display:grid;place-items:center;
+  background:linear-gradient(rgba(67,200,245,.07) 1px,transparent 1px) 0 0/10px 10px,linear-gradient(90deg,rgba(67,200,245,.07) 1px,transparent 1px) 0 0/10px 10px}
+.unit img{max-height:88px;max-width:100%;object-fit:contain;filter:drop-shadow(0 0 5px rgba(67,200,245,.45));animation:fl 7s infinite}
+@keyframes fl{0%,95%,100%{opacity:1}96%{opacity:.75}97%{opacity:1}98%{opacity:.85}}
+.unit .row{display:flex;justify-content:space-between;gap:6px;padding:0 4px 0 8px}
+.unit .row b{font:600 13px/1 var(--hud);letter-spacing:.12em}
+.read{padding:8px 9px;display:grid;gap:6px;align-content:center}
+.rd{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+.rd b{font:16px/1 var(--mono);letter-spacing:.02em;white-space:nowrap}
+.seg{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;height:6px}
+.seg i{background:#0f2a3a}.seg i.on{background:var(--cy)}.seg i.on.hi{background:var(--ok)}
 
-/* Readouts */
-.stats{display:grid;grid-template-columns:1.25fr 1fr 1fr;background:var(--s1);border:1px solid var(--line);border-radius:var(--r)}
-.stat{padding:11px 12px;min-width:0}
-.stat+.stat{border-left:1px solid var(--line)}
-.stat .k{color:var(--faint);font-size:12px}
-.stat .v{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sig{display:flex;align-items:end;gap:8px}
-.bars{display:flex;align-items:end;gap:2px;height:16px;flex:none}
-.bars i{width:4px;border-radius:1px;background:var(--line2)}
-.bars i:nth-child(1){height:5px}.bars i:nth-child(2){height:8px}.bars i:nth-child(3){height:11px}.bars i:nth-child(4){height:14px}.bars i:nth-child(5){height:16px}
-.bars i.on{background:var(--tx)}
-.stat .v.run{color:var(--amb)}
+/* Telemetry strip */
+.tel{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cell{--c:6px;padding:7px 9px;display:grid;gap:4px;min-width:0}
+.cell b{font:700 17px/1 var(--hud);letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell b.amb{color:var(--amb)}
 
-/* Lock / unlock */
-.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ctl{display:grid;justify-items:center;align-content:center;gap:7px;min-height:90px;background:var(--s1);border:1px solid var(--line);border-radius:var(--r);transition:background .15s,transform .08s}
-.ctl:active{transform:scale(.98);background:var(--s2)}
-.ctl svg{width:30px;height:30px;stroke:var(--tx);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.ctl span{font-weight:600}
-.ctl.cur{border-color:var(--line2);background:var(--s2)}
-.ctl.cur svg{stroke:var(--ok)}
+/* Section rule with ticks */
+.rule{display:flex;align-items:center;gap:8px;height:16px}
+.rule .ln{flex:1;height:5px;background:linear-gradient(90deg,var(--edge2) 1px,transparent 1px) 0 0/8px 5px;border-bottom:1px solid var(--edge2)}
+.rule .msg{font:12px/1 var(--mono);letter-spacing:.08em;color:var(--cy)}
+.rule .msg.bad{color:var(--red)}
 
-/* Remote start: press and hold */
-.start{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;padding:0 18px;min-height:58px;border:1px solid var(--line);border-radius:var(--r);background:var(--s1);text-align:left}
-.start .fill{position:absolute;inset:0;background:rgba(240,166,58,.18);transform-origin:left;transform:scaleX(0)}
-.start.hold .fill{transform:scaleX(1);transition:transform 1.2s linear}
-.start svg{position:relative;width:26px;height:26px;stroke:var(--amb);fill:none;stroke-width:1.8;stroke-linecap:round}
-.start div{position:relative}
-.start b{display:block;font-weight:600}
-.start small{color:var(--mut);font-size:13px}
-.start.running{border-color:rgba(240,166,58,.45)}
+/* Command buttons */
+.cmd{--e:var(--edge2);--f:linear-gradient(180deg,#0b2131,#071420);display:grid;place-content:center;justify-items:center;gap:5px;width:100%;transition:filter .12s,transform .08s}
+.cmd:active{transform:scale(.985);filter:brightness(1.35)}
+.cmd b{font:700 22px/1 var(--hud);letter-spacing:.32em;text-indent:.32em}
+.cmd .lb{font-size:10px;letter-spacing:.14em}
+.big{--c:12px;--e:var(--cy);--f:linear-gradient(180deg,#0f3550,#081d2d);min-height:82px;flex:1.3 1 82px;max-height:150px}
+.big b{font-size:32px;letter-spacing:.4em;text-indent:.4em;text-shadow:0 0 10px rgba(67,200,245,.45)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1 1 68px;max-height:120px}
+.pair .cmd{min-height:68px;height:100%}
+.cmd.cur{--e:var(--ok)}.cmd.cur .lb{color:var(--ok)}
+/* Remote start: press and hold; the 12 segments fill in 1.2 s. */
+.start{--e:rgba(255,180,71,.75);position:relative}
+.start b{color:var(--amb)}
+.start .hold{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;width:120px;height:4px}
+.start .hold i{background:rgba(255,180,71,.18)}
+.start.holding .hold i{animation:fillseg 1.2s steps(1,end) forwards}
+@keyframes fillseg{to{background:var(--amb)}}
+.start.running{--f:linear-gradient(180deg,#3a2608,#1c1205)}
 
-/* Walk-up */
-.walk{background:var(--s1);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;display:grid;gap:10px}
-.head{display:flex;align-items:baseline;justify-content:space-between}
-.head b{font-weight:600}
-.head span{color:var(--faint);font-size:12px}
-.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px}
-.seg button{padding:9px 0;border-radius:9px;color:var(--mut);font-weight:500}
-.seg button.sel{background:var(--s2);color:var(--tx);box-shadow:0 0 0 1px var(--line2)}
-.armrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
-.armrow div{flex:1}
-.armrow small{display:block;color:var(--mut);font-size:13px}
-.sw{flex:none;width:46px;height:28px;border-radius:999px;background:var(--line2);position:relative;transition:background .15s}
-.sw:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#d9dce0;transition:transform .15s}
-.armrow[aria-checked="true"] .sw{background:var(--amb)}
-.armrow[aria-checked="true"] .sw:after{transform:translateX(18px);background:#fff}
+/* Walk-up console switches with indicator lamps */
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sw{--c:6px;--e:var(--edge);display:grid;justify-items:center;gap:5px;padding:9px 4px 8px;width:100%}
+.sw .lamp{width:22px;height:4px;background:#13293a}
+.sw b{font:700 16px/1 var(--hud);letter-spacing:.2em;text-indent:.2em}
+.sw .lb{font-size:9px;letter-spacing:.1em}
+.sw.on{--e:var(--edge2)}
+.sw.on .lamp{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.sw.arm.on .lamp{background:var(--amb);box-shadow:0 0 6px var(--amb)}
+.sw.on b{color:#fff}
 
-/* Activity */
-.act{display:grid;gap:6px;padding:0 2px}
-.act ul{list-style:none;padding:0;display:grid;gap:5px}
-.act li{display:flex;gap:10px;font-size:13px;color:var(--mut)}
-.act li time{flex:none;width:52px;color:var(--faint);white-space:nowrap}
-.act li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.act.open li span{white-space:normal}
-.act li:nth-child(n+3){display:none}.act.open li:nth-child(n+3){display:flex}
-.act .head button{color:var(--mut);font-size:13px}
+/* Event log: newest line; tap for more */
+.log{--c:6px;padding:7px 10px;display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left}
+.log ul{flex:1;min-width:0;list-style:none;padding:0;font:12px/17px var(--mono);color:var(--mut);display:grid}
+.log li{display:flex;gap:10px;white-space:nowrap;overflow:hidden}
+.log li time{flex:none;width:48px;color:var(--faint)}
+.log li span{overflow:hidden;text-overflow:ellipsis}
+.log li:nth-child(n+2){display:none}.log.open li{display:flex}
+.log .lb{padding-top:3px}
 
-/* Messages and setup */
-.note{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translate(-50%,8px);opacity:0;transition:opacity .2s,transform .2s;
-  background:var(--s2);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;font-size:14px;pointer-events:none;max-width:calc(100% - 32px)}
-.note.show{opacity:1;transform:translate(-50%,0)}.note.bad{border-color:rgba(239,96,96,.5)}
-.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;align-items:end;z-index:5}
+/* Setup sheet */
+.sheet{position:fixed;inset:0;background:rgba(2,6,10,.78);display:grid;align-items:center;padding:20px;z-index:5}
 .sheet[hidden]{display:none}
-.sheet div{background:var(--s1);border-top:1px solid var(--line2);border-radius:20px 20px 0 0;padding:22px max(20px,env(safe-area-inset-left)) max(22px,env(safe-area-inset-bottom));display:grid;gap:12px;max-width:480px;width:100%;margin:0 auto}
-.sheet b{font-size:18px;font-weight:600}
-.sheet p{color:var(--mut);font-size:14px}.sheet p em{color:var(--tx);font-style:normal}
-.sheet button{background:var(--tx);color:var(--bg);font-weight:600;border-radius:12px;padding:14px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-@media (max-height:700px){.hero img{height:84px}.ctl{min-height:80px}.state b{font-size:19px}}
+.sheet .fr{--c:12px;--e:var(--cy);padding:18px;display:grid;gap:12px;max-width:420px;width:100%;margin:0 auto}
+.sheet b{font:700 18px/1.1 var(--hud);letter-spacing:.14em}
+.sheet p{font:14px/1.45 system-ui,sans-serif;color:var(--mut)}.sheet p em{color:var(--tx);font-style:normal}
+.sheet button{min-height:52px}
+@media (prefers-reduced-motion:reduce){.sweep,.ping,.unit img{animation:none}.start.holding .hold i{animation-duration:0s}}
+@media (max-height:690px){.unit .img{height:70px}.unit img{max-height:66px}.big{min-height:70px}.pair .cmd{min-height:58px}}
 </style></head><body>
 <main class="app">
 <header class="top">
   <img src="logo.webp" alt="Ram">
-  <div><div class="name">RAM 1500</div><div class="sub">Warlock · 5.7L · 4x4</div></div>
-  <button class="conn" id="conn" type="button"><i></i><span id="connT">Starting</span></button>
+  <div><h1>RAM 1500</h1><div class="lb">Warlock // 5.7L Hemi // 4x4</div></div>
+  <button class="link" id="link" type="button"><span class="st"><i></i><span id="linkT">INIT</span></span><span class="lb" id="linkS">BLE // ---</span></button>
 </header>
 
-<section class="hero">
-  <img src="ram.webp" alt="Ram 1500">
-  <div class="state"><b id="stateT">—</b><span id="stateS">Waiting for the board</span></div>
-</section>
-
-<section class="stats" aria-label="Status">
-  <div class="stat"><div class="k">Phone signal</div>
-    <div class="sig"><div class="bars" id="bars"><i></i><i></i><i></i><i></i><i></i></div><div class="v" id="dbm">—</div></div></div>
-  <div class="stat"><div class="k">Distance</div><div class="v" id="zone">—</div></div>
-  <div class="stat"><div class="k">Engine</div><div class="v" id="eng">—</div></div>
-</section>
-
-<section class="pair">
-  <button class="ctl" id="bLock" data-cmd="Lock" type="button">
-    <svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><path d="M12 14.6v2"/></svg>
-    <span>Lock</span></button>
-  <button class="ctl" id="bUnlock" data-cmd="Unlock" type="button">
-    <svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 7.6-1.8"/><path d="M12 14.6v2"/></svg>
-    <span>Unlock</span></button>
-</section>
-
-<button class="start" id="bStart" type="button">
-  <span class="fill"></span>
-  <svg viewBox="0 0 24 24"><path d="M12 3.5v8"/><path d="M7.1 6.6a7 7 0 1 0 9.8 0"/></svg>
-  <div><b>Remote start</b><small id="startHint">Press and hold</small></div>
-</button>
-
-<section class="walk">
-  <div class="head"><b>Walk-up</b><span>Unlock zone −65 dBm</span></div>
-  <div class="seg" role="radiogroup" aria-label="Walk-up mode">
-    <button type="button" role="radio" id="mOff" data-cmd="Off">Off</button>
-    <button type="button" role="radio" id="mAuto" data-cmd="Auto">Auto unlock</button>
+<section class="tac">
+  <div class="fr radar br" aria-label="Phone distance radar">
+    <svg viewBox="0 0 200 200" id="rad">
+      <defs>
+        <radialGradient id="scr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#0b2738"/><stop offset="1" stop-color="#03090f"/></radialGradient>
+        <linearGradient id="sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#43c8f5" stop-opacity="0"/><stop offset="1" stop-color="#43c8f5" stop-opacity=".32"/></linearGradient>
+      </defs>
+      <circle cx="100" cy="100" r="80" fill="url(#scr)"/>
+      <g id="ticks" stroke="#2b6683"></g>
+      <g id="nums"></g>
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#22506b"/>
+      <g fill="none" stroke-width=".8">
+        <circle cx="100" cy="100" r="22" stroke="#173447"/>
+        <circle id="zU" cx="100" cy="100" r="43" stroke="#3fe0a0" stroke-dasharray="3 3" opacity=".75"/>
+        <circle id="zS" cx="100" cy="100" r="58.4" stroke="#ffb447" stroke-dasharray="2 4" opacity=".55"/>
+        <path d="M100 20V180M20 100H180" stroke="#173447"/>
+        <path d="M43.4 43.4L156.6 156.6M156.6 43.4L43.4 156.6" stroke="#10283a" stroke-dasharray="1 3"/>
+      </g>
+      <text x="103" y="55">-65 UNLK</text><text x="103" y="40">-76 START</text>
+      <g class="sweep"><path d="M100 100L100 20A80 80 0 0 1 156.6 43.4Z" fill="url(#sw)"/><path d="M100 100L156.6 43.4" stroke="#8fe0ff" stroke-width=".8"/></g>
+      <path d="M96 104l4-9 4 9-4-2z" fill="none" stroke="#8fe0ff" stroke-width=".9"/>
+      <g id="blip" style="display:none">
+        <circle class="ping" r="4" fill="none" stroke="#3fe0a0" stroke-width=".8"/>
+        <circle r="3" fill="#3fe0a0"/>
+        <text id="blipT" x="6" y="-5" style="fill:#3fe0a0">PH</text>
+      </g>
+    </svg>
   </div>
-  <button class="armrow" id="bArm" type="button" role="switch" aria-checked="false">
-    <div>Start on next approach<small>Engine starts when you walk up, once</small></div><span class="sw"></span>
-  </button>
+  <div class="side">
+    <div class="fr unit br">
+      <div class="img"><img src="ram.webp" alt="Ram 1500 hologram"></div>
+      <div class="row"><span class="lb">Unit</span><b id="unitS">--</b></div>
+    </div>
+    <div class="fr read">
+      <div class="rd"><span class="lb">Sig</span><b id="dbm">-- dBm</b></div>
+      <div class="seg" id="seg"></div>
+      <div class="rd"><span class="lb">Zone</span><b id="zone" class="mono">--</b></div>
+    </div>
+  </div>
 </section>
 
-<section class="act" id="act">
-  <div class="head"><b>Activity</b><button type="button" id="more">Show all</button></div>
-  <ul id="events"><li><time>—</time><span>No activity yet</span></li></ul>
+<section class="tel">
+  <div class="fr cell"><span class="lb">Mode</span><b id="md">--</b></div>
+  <div class="fr cell"><span class="lb">Engine</span><b id="en">--</b></div>
+  <div class="fr cell"><span class="lb">Last cmd</span><b id="ls">--</b></div>
 </section>
+
+<div class="rule"><span class="lb">Command</span><span class="ln"></span><span class="msg" id="msg">&gt; STANDBY</span></div>
+<button class="fr cmd big br" id="bUnlock" data-cmd="Unlock" type="button"><b>UNLOCK</b><span class="lb">Doors // CMD-02</span></button>
+<div class="pair">
+  <button class="fr cmd" id="bLock" data-cmd="Lock" type="button"><b>LOCK</b><span class="lb">Doors // CMD-01</span></button>
+  <button class="fr cmd start" id="bStart" type="button"><b>START</b><span class="hold" id="holdBar"></span><span class="lb" id="startHint">Hold to start // CMD-03</span></button>
+</div>
+
+<div class="rule"><span class="lb">Walk-up</span><span class="ln"></span><span class="lb">Unlk zone -65</span></div>
+<div class="modes">
+  <button class="fr sw arm" id="mArm" type="button"><span class="lamp"></span><b>ARM</b><span class="lb">Start on approach</span></button>
+  <button class="fr sw" id="mAuto" data-cmd="Auto" type="button"><span class="lamp"></span><b>AUTO</b><span class="lb">Walk-up unlock</span></button>
+  <button class="fr sw" id="mOff" data-cmd="Off" type="button"><span class="lamp"></span><b>OFF</b><span class="lb">Buttons only</span></button>
+</div>
+
+<button class="fr log" id="logBox" type="button"><span class="lb">Log</span><ul id="events"><li><time>--</time><span>No events yet</span></li></ul><span class="lb">+</span></button>
 </main>
 
-<div class="sheet" id="sheet" hidden><div>
-  <b>Connect to your truck</b>
+<div class="sheet" id="sheet" hidden><div class="fr br">
+  <b>LINK TO TRUCK</b>
   <p id="sheetMsg">Chrome needs permission to talk to the board.</p>
-  <button type="button" id="sheetBtn">Choose Ram Remote</button>
+  <button class="fr cmd" type="button" id="sheetBtn"><b style="font-size:17px">PAIR CHROME</b><span class="lb">Choose Ram Remote</span></button>
 </div></div>
-<div class="note" id="note" role="status" aria-live="polite"></div>
 
 <script>
 'use strict';
@@ -180,52 +224,75 @@ const STAT = '8f1c0003-6a52-4d2e-9a4b-52414d313530';
 const $ = id => document.getElementById(id), enc = new TextEncoder(), dec = new TextDecoder();
 let dev = null, cmdCh = null, statCh = null, connected = false, busy = false, pollT = null, retryT = null, cur = null;
 
+/* Radar bezel: a tick every 10 degrees, long ticks and bearing numbers every 30. */
+(function bezel() {
+  const t = $('ticks'), n = $('nums'), NS = 'http://www.w3.org/2000/svg';
+  for (let a = 0; a < 360; a += 5) {
+    const r = a * Math.PI / 180, long = a % 30 === 0, mid = a % 10 === 0;
+    const r1 = 80, r2 = long ? 87 : mid ? 84 : 82.5;
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', 100 + Math.sin(r) * r1); l.setAttribute('y1', 100 - Math.cos(r) * r1);
+    l.setAttribute('x2', 100 + Math.sin(r) * r2); l.setAttribute('y2', 100 - Math.cos(r) * r2);
+    l.setAttribute('stroke-width', long ? '1' : '.6'); if (!mid) l.setAttribute('opacity', '.5');
+    t.append(l);
+  }
+  /* Bearing numbers outside the ring every 30 degrees (0, 3, 6 ... 33), like a console scope. */
+  for (let a = 0; a < 360; a += 30) {
+    const r = a * Math.PI / 180, e = document.createElementNS(NS, 'text');
+    e.textContent = String(a / 10);
+    e.setAttribute('x', (100 + Math.sin(r) * 93).toFixed(1)); e.setAttribute('y', (102.5 - Math.cos(r) * 93).toFixed(1));
+    e.setAttribute('text-anchor', 'middle'); n.append(e);
+  }
+})();
+$('seg').innerHTML = '<i></i>'.repeat(12);
+$('holdBar').innerHTML = Array.from({ length: 12 }, (_, i) => `<i style="animation-delay:${(i * 0.1).toFixed(1)}s"></i>`).join('');
+
 /* Web Bluetooth runs one GATT operation at a time: every operation goes through this queue. */
 let chain = Promise.resolve();
 function op(fn) { const p = chain.then(fn, fn); chain = p.catch(() => {}); return p; }
 
-let noteT = null;
-function note(t, bad) {
-  const n = $('note'); n.textContent = t; n.className = 'note show' + (bad ? ' bad' : '');
-  clearTimeout(noteT); noteT = setTimeout(() => { n.className = 'note' + (bad ? ' bad' : ''); }, 2400);
-}
-function conn(text, cls) { $('connT').textContent = text; $('conn').className = 'conn ' + (cls || ''); }
-function enable(on) { document.querySelectorAll('[data-cmd],#bStart,#bArm').forEach(b => { b.disabled = !on; }); }
+function say(t, bad) { const m = $('msg'); m.textContent = '> ' + t.toUpperCase(); m.className = 'msg' + (bad ? ' bad' : ''); }
+function link(t, s, cls) { $('linkT').textContent = t; $('linkS').textContent = s; $('link').className = 'link ' + (cls || ''); }
+function enable(on) { document.querySelectorAll('[data-cmd],#bStart,#mArm').forEach(b => { b.disabled = !on; }); }
 function sheet(msg) { $('sheetMsg').innerHTML = msg; $('sheet').hidden = false; }
 function timeout(p, ms, w) { return Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error(w + ' timed out')), ms))]); }
-
-/* Board ages look like " 4m07s" or " 2h15m"; shown as "4 min", "2 h", "21 s". */
+/* dBm to radar radius: -40 dBm at the centre, -90 dBm at the rim. Zone rings use the same scale (-65 = 43, -76 = 58.4). */
+const rad = d => Math.max(6, Math.min(78, 8 + (-d - 40) * 1.4));
+/* Board ages look like " 4m07s" or " 2h15m"; shown as "4m", "2h", "21s". */
 function ago(a) {
-  const h = /(\d+)h/.exec(a), m = /(\d+)m(?!s)/.exec(a) || /(\d+)m\d/.exec(a), s = /(\d+)s/.exec(a);
-  if (h) return h[1] + ' h';
-  if (m && +m[1] > 0) return m[1] + ' min';
-  return (s ? +s[1] : 0) + ' s';
+  const h = /(\d+)h/.exec(a), m = /(\d+)m(?!s)/.exec(a), s = /(\d+)s/.exec(a);
+  if (h) return h[1] + 'h';
+  if (m && +m[1] > 0) return m[1] + 'm';
+  return (s ? +s[1] : 0) + 's';
 }
+
 function show(s) {
   cur = s;
   const d = s.link ? (s.avg || 0) : 0, last = (s.last || '').toLowerCase();
+  $('dbm').textContent = d ? d + ' dBm' : '-- dBm';
+  const lvl = d ? Math.max(1, Math.min(12, Math.round((d + 90) / 3.3))) : 0;
+  $('seg').querySelectorAll('i').forEach((b, i) => { b.className = i < lvl ? (d >= -65 ? 'on hi' : 'on') : ''; });
+  $('zone').textContent = !s.link ? 'AWAY' : d >= -65 ? 'UNLOCK' : d >= -76 ? 'START' : 'FAR';
+  const b = $('blip');
+  if (d) {
+    const r = rad(d), a = 38 * Math.PI / 180;
+    b.setAttribute('transform', `translate(${(100 + Math.sin(a) * r).toFixed(1)} ${(100 - Math.cos(a) * r).toFixed(1)})`);
+    $('blipT').textContent = 'PH ' + d; b.style.display = '';
+  } else b.style.display = 'none';
   /* Lock state comes from the last command: the truck sends no feedback. */
-  $('stateT').textContent = s.engine ? 'Engine running' : last === 'lock' ? 'Locked' : last === 'unlock' ? 'Unlocked' : 'Ready';
-  $('stateS').textContent = 'Walk-up ' + (s.auto ? 'auto unlock' : 'off') + (s.armed ? ' · start armed' : '');
-  const lvl = !d ? 0 : d >= -55 ? 5 : d >= -62 ? 4 : d >= -68 ? 3 : d >= -76 ? 2 : 1;
-  $('bars').querySelectorAll('i').forEach((b, i) => b.classList.toggle('on', i < lvl));
-  $('dbm').textContent = d ? d + ' dBm' : '—';
-  $('zone').textContent = !s.link ? 'Away' : d >= -65 ? 'At truck' : d >= -76 ? 'Close' : 'Far';
-  $('eng').textContent = s.engine ? 'Running' : 'Off';
-  $('eng').className = 'v' + (s.engine ? ' run' : '');
-  $('bLock').classList.toggle('cur', last === 'lock');
-  $('bUnlock').classList.toggle('cur', last === 'unlock');
+  $('unitS').textContent = s.engine ? 'RUNNING' : last === 'lock' ? 'LOCKED' : last === 'unlock' ? 'UNLOCKED' : 'READY';
+  $('md').textContent = (s.auto ? 'AUTO' : 'OFF') + (s.armed ? '+ARM' : '');
+  $('en').textContent = s.engine ? 'RUN' : 'OFF'; $('en').className = s.engine ? 'amb' : '';
+  $('ls').textContent = s.last && s.last !== 'none since restart' ? s.last.toUpperCase() : 'NONE';
+  $('bLock').classList.toggle('cur', last === 'lock'); $('bUnlock').classList.toggle('cur', last === 'unlock');
   $('bStart').classList.toggle('running', !!s.engine);
-  $('mAuto').classList.toggle('sel', !!s.auto); $('mAuto').setAttribute('aria-checked', !!s.auto);
-  $('mOff').classList.toggle('sel', !s.auto); $('mOff').setAttribute('aria-checked', !s.auto);
-  $('bArm').setAttribute('aria-checked', !!s.armed);
+  $('mArm').classList.toggle('on', !!s.armed); $('mAuto').classList.toggle('on', !!s.auto); $('mOff').classList.toggle('on', !s.auto);
   const ul = $('events'); ul.textContent = '';
   (s.ev || []).forEach(e => {
     const li = document.createElement('li'), t = document.createElement('time'), x = document.createElement('span');
-    t.textContent = ago(e[0]); x.textContent = e[1].charAt(0).toUpperCase() + e[1].slice(1);
-    li.append(t, x); ul.append(li);
+    t.textContent = ago(e[0]); x.textContent = e[1].toUpperCase(); li.append(t, x); ul.append(li);
   });
-  if (!ul.children.length) ul.innerHTML = '<li><time>—</time><span>No activity yet</span></li>';
+  if (!ul.children.length) ul.innerHTML = '<li><time>--</time><span>NO EVENTS YET</span></li>';
 }
 
 async function exchange(n) {
@@ -250,50 +317,47 @@ async function hear(d, ms) {
 async function connect() {
   clearTimeout(retryT);
   if (connected || busy) return;
-  if (!navigator.bluetooth) { conn('No Bluetooth', 'err'); sheet('This browser has no Web Bluetooth. Open this page in <em>Chrome</em>.'); return; }
-  if (!navigator.bluetooth.getDevices) { conn('Setup', 'wait'); sheet('Turn on <em>chrome://flags/#enable-web-bluetooth-new-permissions-backend</em>, relaunch Chrome, then reload.'); return; }
+  if (!navigator.bluetooth) { link('NO BT', 'BLE // NONE', 'err'); sheet('This browser has no Web Bluetooth. Open this page in <em>Chrome</em>.'); return; }
+  if (!navigator.bluetooth.getDevices) { link('SETUP', 'BLE // FLAG', 'wait'); sheet('Turn on <em>chrome://flags/#enable-web-bluetooth-new-permissions-backend</em>, relaunch Chrome, then reload.'); return; }
   busy = true; enable(false);
   try {
     dev = (await navigator.bluetooth.getDevices()).find(d => d.name === NAME);
-    if (!dev) { conn('Setup', 'wait'); sheet('Tap the button, then choose <em>Ram Remote</em> in the list.'); return; }
-    conn('Searching', 'wait');
+    if (!dev) { link('SETUP', 'BLE // UNPAIRED', 'wait'); sheet('Tap the button, then choose <em>Ram Remote</em> in the list.'); return; }
+    link('SCAN', 'BLE // LISTENING', 'wait'); say('Listening for the truck');
     await hear(dev, 12000);
-    conn('Connecting', 'wait');
+    link('SYNC', 'BLE // CONNECTING', 'wait');
     const server = await timeout(dev.gatt.connect(), 15000, 'Connect');
     let svc;
     try { svc = await server.getPrimaryService(SVC); }
     catch (e) {
-      if (e.name === 'SecurityError') { conn('Setup', 'wait'); sheet('Chrome needs permission for the truck controls. Tap the button and choose <em>Ram Remote</em>.'); return; }
-      if (e.name === 'NotFoundError') { conn('Update', 'err'); sheet('The phone still has an old copy of the board\'s services. Turn the phone\'s <em>Bluetooth off and on</em>, wait 10 seconds, then reload.'); return; }
+      if (e.name === 'SecurityError') { link('SETUP', 'BLE // PERMISSION', 'wait'); sheet('Chrome needs permission for the truck controls. Tap the button and choose <em>Ram Remote</em>.'); return; }
+      if (e.name === 'NotFoundError') { link('UPDATE', 'BLE // OLD CACHE', 'err'); sheet('The phone still has an old copy of the board\'s services. Turn the phone\'s <em>Bluetooth off and on</em>, wait 10 seconds, then reload.'); return; }
       throw e;
     }
     cmdCh = await svc.getCharacteristic(CMD);
     statCh = await svc.getCharacteristic(STAT);
     dev.addEventListener('gattserverdisconnected', drop, { once: true });
-    connected = true; $('sheet').hidden = true; conn('Connected', 'ok'); enable(true);
+    connected = true; $('sheet').hidden = true; link('LINK OK', 'BLE // ENCRYPTED', 'ok'); enable(true); say('Ready');
     show(await op(() => exchange('Status')));
     poll();
   } catch (e) {
-    conn('Not found', 'err');
-    note(e.message.includes('Listening') ? 'Truck not in range' : 'Bluetooth: ' + e.message, true);
+    link('NO LINK', 'BLE // OUT OF RANGE', 'err');
+    say(e.message.includes('Listening') ? 'Truck not in range' : e.message, true);
     retry();
   } finally { busy = false; }
 }
-function drop() { connected = false; stopPoll(); enable(false); conn('Reconnecting', 'wait'); retry(1500); }
+function drop() { connected = false; stopPoll(); enable(false); link('LOST', 'BLE // RECONNECTING', 'wait'); say('Link lost, reconnecting', true); retry(1500); }
 function retry(ms) { clearTimeout(retryT); if (!document.hidden) retryT = setTimeout(connect, ms || 5000); }
 
-const DONE = { Lock: 'Lock sent', Unlock: 'Unlock sent', Start: 'Remote start sent', Auto: 'Walk-up unlock on', Off: 'Walk-up off', Arm: 'Start on approach armed', Disarm: 'Start on approach off' };
+const DONE = { Lock: 'Lock sent', Unlock: 'Unlock sent', Start: 'Start sent', Auto: 'Walk-up auto', Off: 'Walk-up off', Arm: 'Start on approach armed', Disarm: 'Start on approach off' };
 async function go(n) {
-  if (!connected) { note('Not connected', true); return; }
-  try {
-    show(await op(() => exchange(n)));
-    note(DONE[n] || n);
-    if (navigator.vibrate) navigator.vibrate(30);
-  } catch (e) { note(n + ' failed. Try again.', true); }
+  if (!connected) { say('Not connected', true); return; }
+  say(n + ' ...');
+  try { show(await op(() => exchange(n))); say(DONE[n] || n); if (navigator.vibrate) navigator.vibrate(30); }
+  catch (e) { say(n + ' failed', true); }
 }
-
 document.querySelectorAll('[data-cmd]').forEach(b => b.addEventListener('click', () => go(b.dataset.cmd)));
-$('bArm').addEventListener('click', () => go(cur && cur.armed ? 'Disarm' : 'Arm'));
+$('mArm').addEventListener('click', () => go(cur && cur.armed ? 'Disarm' : 'Arm'));
 
 /* Remote start: press and hold 1.2 s, so a stray tap never starts the engine. */
 let holdT = null;
@@ -301,25 +365,21 @@ const st = $('bStart');
 function holdStart(e) {
   if (st.disabled) return;
   e.preventDefault();
-  st.classList.add('hold'); $('startHint').textContent = 'Keep holding';
-  holdT = setTimeout(() => { holdT = null; holdEnd(); go('Start'); }, 1200);
+  st.classList.add('holding'); $('startHint').textContent = 'Keep holding';
+  holdT = setTimeout(() => { holdT = null; holdReset(); go('Start'); }, 1200);
 }
-function holdEnd() {
-  if (holdT) { clearTimeout(holdT); holdT = null; note('Hold to start'); }
-  st.classList.remove('hold'); $('startHint').textContent = 'Press and hold';
-}
+function holdReset() { st.classList.remove('holding'); $('startHint').textContent = 'Hold to start // CMD-03'; }
+function holdCancel() { if (holdT) { clearTimeout(holdT); holdT = null; say('Hold to start'); } holdReset(); }
 st.addEventListener('pointerdown', holdStart);
-['pointerup', 'pointerleave', 'pointercancel'].forEach(t => st.addEventListener(t, () => { if (st.classList.contains('hold')) holdEnd(); }));
+['pointerup', 'pointerleave', 'pointercancel'].forEach(t => st.addEventListener(t, () => { if (st.classList.contains('holding')) holdCancel(); }));
 st.addEventListener('contextmenu', e => e.preventDefault());
 
-$('more').addEventListener('click', () => { const a = $('act'); a.classList.toggle('open'); $('more').textContent = a.classList.contains('open') ? 'Show less' : 'Show all'; });
+$('logBox').addEventListener('click', () => $('logBox').classList.toggle('open'));
 $('sheetBtn').addEventListener('click', async () => {
-  try {
-    await navigator.bluetooth.requestDevice({ filters: [{ name: NAME }], optionalServices: [SVC] });
-    $('sheet').hidden = true; connect();
-  } catch (e) { if (e.name !== 'NotFoundError') note(e.message, true); }
+  try { await navigator.bluetooth.requestDevice({ filters: [{ name: NAME }], optionalServices: [SVC] }); $('sheet').hidden = true; connect(); }
+  catch (e) { if (e.name !== 'NotFoundError') say(e.message, true); }
 });
-$('conn').addEventListener('click', () => { if (!connected) connect(); });
+$('link').addEventListener('click', () => { if (!connected) connect(); });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { stopPoll(); clearTimeout(retryT); }
   else if (connected) poll(); else connect();
