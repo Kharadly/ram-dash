@@ -1,6 +1,6 @@
 /* Offline copy of the dashboard. Network first, so updates show at once; the cached copy is used only when
    there is no signal. Bluetooth control itself never needs the internet. */
-const CACHE = 'ram-dash-v1';
+const CACHE = 'ram-dash-v2';
 const FILES = ['./', './index.html', './ram.webp', './logo.webp', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 const HOSTS = [self.location.origin, 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });

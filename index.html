@@ -86,6 +86,16 @@ button:disabled{opacity:.4;cursor:default}
 .cell b{font:700 17px/1 var(--hud);letter-spacing:.1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cell b.amb{color:var(--amb)}
 
+/* Power strip: the EcoFlow Delta 2, read by the board every 5 min while the phone is linked */
+.pwr{display:grid;grid-template-columns:1fr;gap:8px}
+.pwr[hidden]{display:none}
+.pwr .cell{grid-template-columns:auto 1fr;align-items:end;column-gap:8px}
+.pwr .cell .lb{grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pwr .cell b{font-size:20px}
+.pwr .cell b.lo{color:var(--red)}.pwr .cell b.mid{color:var(--amb)}.pwr .cell b.old{color:var(--faint)}
+.pwr{cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.pwr .cell small{font:12px/1.15 var(--mono);color:var(--mut);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+
 /* Section rule with ticks */
 .rule{display:flex;align-items:center;gap:8px;height:16px}
 .rule .ln{flex:1;height:5px;background:linear-gradient(90deg,var(--edge2) 1px,transparent 1px) 0 0/8px 5px;border-bottom:1px solid var(--edge2)}
@@ -193,6 +203,9 @@ button:disabled{opacity:.4;cursor:default}
   <div class="fr cell"><span class="lb">Mode</span><b id="md">--</b></div>
   <div class="fr cell"><span class="lb">Engine</span><b id="en">--</b></div>
   <div class="fr cell"><span class="lb">Last cmd</span><b id="ls">--</b></div>
+</section>
+<section class="pwr" id="pwr" hidden>
+  <div class="fr cell"><span class="lb" id="pAl">Delta 2</span><b id="pA">--</b><small id="pAs">--</small></div>
 </section>
 
 <div class="rule"><span class="lb">Command</span><span class="ln"></span><span class="msg" id="msg">&gt; STANDBY</span></div>
@@ -302,9 +315,49 @@ async function exchange(n) {
   await cmdCh.writeValueWithResponse(enc.encode(n));
   return JSON.parse(dec.decode(await statCh.readValue()));
 }
+/* EcoFlow Delta 2 readings ("Power"). A board without the reader refuses the command: the strip stays hidden. */
+let pwrN = 0;
+const secs = a => a < 90 ? a + 's' : a < 5400 ? Math.round(a / 60) + 'm' : Math.round(a / 3600) + 'h';
+const mins = m => m < 60 ? m + 'm' : (m < 600 ? (m / 60).toFixed(1).replace('.0', '') : Math.round(m / 60)) + 'h';
+let pwrHold = '';
+/* Why the board is not reading, when that is the user's doing or needs the user. */
+function holdText(p) {
+  if (p.hold === 'pause') return 'PAUSED ' + secs(p.pause || 0);
+  if (p.hold === 'off') return 'READER OFF';
+  if (p.hold === 'guard') return 'READER STOPPED';
+  if (!p.id) return 'NEEDS USER ID';
+  return '';
+}
+function showPower(p) {
+  const list = (p && p.ef) || [], h = holdText(p);
+  pwrHold = p.hold || '';
+  $('pwr').hidden = false;
+  ['A'].forEach(u => {
+    const e = list.find(x => x.u === u), b = $('p' + u), s = $('p' + u + 's');
+    $('p' + u + 'l').textContent = 'Delta 2' + (e && e.age >= 0 ? ' · read ' + secs(e.age) + ' ago' : '');
+    if (!e || e.age < 0) {
+      b.textContent = '--'; b.className = '';
+      s.textContent = h || (e ? (e.st === 'ok' ? 'WAITING' : e.st.toUpperCase())
+        : list.length ? 'NOT SEEN' : p.busy ? 'READING' : p.hold ? 'WAITING' : 'SCAN IN ' + secs(p.next || 0));
+      return;
+    }
+    if (h) { b.textContent = e.soc + '%'; b.className = 'old'; s.textContent = h; return; }
+    b.textContent = e.soc + '%'; b.className = e.age > 900 ? 'old' : e.soc < 20 ? 'lo' : e.soc < 40 ? 'mid' : '';
+    let t = e.in > e.out + 5 ? 'Charging ' + e.in + ' W' + (e.chg > 0 ? ' · full in ' + mins(e.chg) : '')
+      : e.out > e.in + 5 ? 'Using ' + e.out + ' W' + (e.dsg > 0 ? ' · ' + mins(e.dsg) + ' left' : '')
+      : 'In ' + e.in + ' W · out ' + e.out + ' W';
+    if (e.st !== 'ok') t = e.st.toUpperCase() + ' · ' + t;   /* last read failed: older value shown */
+    s.textContent = t;
+  });
+}
 function poll() {
   stopPoll();
-  pollT = setInterval(() => { if (connected && !busy && !document.hidden) op(() => exchange('Status')).then(show).catch(() => {}); }, 2000);
+  pwrN = 0;
+  pollT = setInterval(() => {
+    if (!connected || busy || document.hidden) return;
+    op(() => exchange('Status')).then(show).catch(() => {});
+    if (pwrN++ % 8 === 0) op(() => exchange('Power')).then(showPower).catch(() => { $('pwr').hidden = true; });
+  }, 2000);
 }
 function stopPoll() { if (pollT) clearInterval(pollT); pollT = null; }
 
@@ -378,6 +431,16 @@ st.addEventListener('pointerdown', holdStart);
 st.addEventListener('contextmenu', e => e.preventDefault());
 
 $('logBox').addEventListener('click', () => $('logBox').classList.toggle('open'));
+/* Power strip: tap = pause the Delta reader 15 min (frees the Deltas for the EcoFlow app), tap again to resume;
+   hold 2 s = reader off / on (kept across restarts). */
+(function () {
+  const pw = $('pwr'); let t = null, long = false;
+  const send = n => { if (connected) op(() => exchange(n)).then(p => { showPower(p); say(n === 'EfPause' ? (p.hold === 'pause' ? 'Delta reader paused 15 min' : 'Delta reader resumed') : p.hold === 'off' ? 'Delta reader off' : 'Delta reader on'); }).catch(e => say(e.message, true)); };
+  pw.addEventListener('pointerdown', () => { long = false; t = setTimeout(() => { long = true; t = null; send(pwrHold === 'off' ? 'EfOn' : 'EfOff'); }, 2000); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(n => pw.addEventListener(n, () => { if (t) { clearTimeout(t); t = null; } }));
+  pw.addEventListener('click', () => { if (!long) send('EfPause'); long = false; });
+  pw.addEventListener('contextmenu', e => e.preventDefault());
+})();
 $('sheetBtn').addEventListener('click', async () => {
   try { await navigator.bluetooth.requestDevice({ filters: [{ name: NAME }], optionalServices: [SVC] }); $('sheet').hidden = true; connect(); }
   catch (e) { if (e.name !== 'NotFoundError') say(e.message, true); }
